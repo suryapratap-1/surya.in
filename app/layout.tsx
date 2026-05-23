@@ -1,25 +1,36 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Fraunces, Inter, JetBrains_Mono } from "next/font/google";
+import SmoothScroll from "@/components/SmoothScroll";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const fraunces = Fraunces({
+  variable: "--font-fraunces",
+  subsets: ["latin"],
+  display: "swap",
+  axes: ["SOFT", "WONK"],
+});
+
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
   display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains",
   subsets: ["latin"],
   display: "swap",
+  weight: ["400", "500"],
 });
 
 export const metadata: Metadata = {
-  title: "Surya — Creative Developer",
-  description: "Portfolio of a creative developer building digital experiences at the intersection of design and engineering.",
+  title: "Surya Pratap Das — Backend & DevOps Engineer",
+  description:
+    "Backend and DevOps engineer with 2+ years building event-driven systems, cloud infrastructure at scale, and production-grade CI/CD pipelines.",
   openGraph: {
-    title: "Surya — Creative Developer",
-    description: "Portfolio showcasing digital experiences.",
+    title: "Surya Pratap Das — Backend & DevOps Engineer",
+    description:
+      "Scaled a live streaming platform to 60K–70K concurrent users. Kafka-based event-driven middleware. AWS ECS, Terraform IaC, GitHub Actions.",
     type: "website",
   },
 };
@@ -32,9 +43,11 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable}`}
+      className={`${fraunces.variable} ${inter.variable} ${jetbrainsMono.variable}`}
     >
-      <body className="antialiased overflow-x-hidden">{children}</body>
+      <body className="antialiased overflow-x-hidden">
+        <SmoothScroll>{children}</SmoothScroll>
+      </body>
     </html>
   );
 }

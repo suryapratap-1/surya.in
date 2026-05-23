@@ -1,62 +1,54 @@
 "use client";
 
-import { useRef } from "react";
+import Cursor from "@/components/Cursor";
 import Navbar from "@/components/Navbar";
-import ScrollyCanvas from "@/components/ScrollyCanvas";
-import Overlay from "@/components/Overlay";
-import Projects from "@/components/Projects";
-import Footer from "@/components/Footer";
 import ScrollProgress from "@/components/ScrollProgress";
+import Hero from "@/components/Hero";
+import WhatIBuild from "@/components/WhatIBuild";
+import SelectedWork from "@/components/SelectedWork";
+import Stack from "@/components/Stack";
+import Background from "@/components/Background";
+import Contact from "@/components/Contact";
+import Footer from "@/components/Footer";
 
 export default function Home() {
-  // The 500vh scroll container — shared between canvas and overlay
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-
   return (
-    <main style={{ background: "var(--bg)" }}>
-      {/* ── Scroll progress bar ───────────────────────────────────── */}
+    <>
+      {/* Skip-to-content link — keyboard / screen reader users */}
+      <a href="#main-content" className="skip-link">
+        Skip to content
+      </a>
+
+      {/* Custom cursor — fine-pointer devices only */}
+      <Cursor />
+
+      {/* Scroll progress bar */}
       <ScrollProgress />
 
-      {/* ── Fixed Navbar (always on top) ──────────────────────────── */}
+      {/* Fixed navbar */}
       <Navbar />
 
-      {/* ── 500vh Scrolly Section ─────────────────────────────────── */}
-      <section
-        ref={scrollContainerRef}
-        style={{ height: "500vh", position: "relative" }}
-      >
-        {/* Sticky viewport — canvas + overlay live here */}
-        <div
-          className="sticky top-0 w-full overflow-hidden"
-          style={{ height: "100vh" }}
-        >
-          {/* Layer 0: Canvas (frame scrubber) */}
-          <div className="absolute inset-0">
-            <ScrollyCanvas containerRef={scrollContainerRef} />
-          </div>
+      <main id="main-content">
+        {/* Hero — 300vh sticky scroll with canvas frame scrubber */}
+        <Hero />
 
-          {/* Layer 1: Dark gradient vignette so text pops */}
-          <div
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              background:
-                "radial-gradient(ellipse 80% 60% at 50% 50%, transparent 30%, rgba(14,14,14,0.55) 100%)",
-              zIndex: 5,
-            }}
-          />
+        {/* 01 — What I Build */}
+        <WhatIBuild />
 
-          {/* Layer 2: Parallax text overlay */}
-          <Overlay containerRef={scrollContainerRef} />
-        </div>
-      </section>
+        {/* 02 — Selected Work */}
+        <SelectedWork />
 
-      {/* ── Projects grid (below the sticky section) ──────────────── */}
-      <div id="work">
-        <Projects />
-      </div>
+        {/* 03 — Stack */}
+        <Stack />
 
-      {/* ── Footer ────────────────────────────────────────────────── */}
-      <Footer />
-    </main>
+        {/* 04 — Background */}
+        <Background />
+
+        {/* 05 — Contact */}
+        <Contact />
+
+        <Footer />
+      </main>
+    </>
   );
 }
