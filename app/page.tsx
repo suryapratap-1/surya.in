@@ -19,7 +19,7 @@ export default function Home() {
         Skip to content
       </a>
 
-      {/* Custom cursor — fine-pointer devices only */}
+      {/* White dot cursor follower */}
       <Cursor />
 
       {/* Scroll progress bar */}
