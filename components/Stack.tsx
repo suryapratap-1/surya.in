@@ -53,16 +53,19 @@ export default function Stack() {
         scrollTrigger: { trigger: el.querySelector(".stack-label"), start: "top 85%" },
       });
       gsap.from(el.querySelector(".stack-label-line"), {
-        scaleX: 0, duration: 0.6, ease: EASE.transition,
+        scaleX: 0, duration: 0.6, ease: EASE.transition, delay: 0.15,
         scrollTrigger: { trigger: el.querySelector(".stack-label"), start: "top 85%" },
-        delay: 0.15,
+      });
+      gsap.from(el.querySelector(".stack-watermark"), {
+        opacity: 0, x: 60, duration: DUR.slow, ease: EASE.entrance,
+        scrollTrigger: { trigger: el, start: "top 70%" },
       });
 
-      el.querySelectorAll<HTMLElement>(".stack-group").forEach((group, i) => {
-        gsap.from(group, {
-          opacity: 0, y: 28, duration: DUR.base, ease: EASE.entrance,
-          delay: i * 0.06,
-          scrollTrigger: { trigger: group, start: "top 84%" },
+      el.querySelectorAll<HTMLElement>(".stack-row").forEach((row, i) => {
+        gsap.from(row, {
+          opacity: 0, x: -24, duration: DUR.base, ease: EASE.entrance,
+          delay: i * 0.07,
+          scrollTrigger: { trigger: row, start: "top 88%" },
         });
       });
     },
@@ -74,21 +77,32 @@ export default function Stack() {
       ref={sectionRef}
       id="stack"
       aria-labelledby="stack-label"
-      className="relative py-32 md:py-48 px-6 md:px-12 lg:px-24"
-      style={{ background: "var(--bg-elevated)" }}
+      className="relative overflow-hidden"
+      style={{ background: "var(--bg)" }}
     >
-      {/* Subtle top divider */}
-      <div
-        className="absolute top-0 inset-x-0 h-px"
-        style={{
-          background:
-            "linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent)",
-        }}
-      />
+      {/* Top separator */}
+      <div className="h-px mx-6 md:mx-12 lg:mx-16" style={{ background: "var(--border)" }} />
 
-      <div className="max-w-7xl mx-auto">
+      {/* Ghost watermark */}
+      <div
+        className="stack-watermark absolute right-[-2vw] top-1/2 -translate-y-1/2 select-none pointer-events-none"
+        aria-hidden="true"
+        style={{
+          fontSize: "clamp(8rem, 18vw, 22rem)",
+          fontFamily: "var(--font-fraunces)",
+          fontWeight: 700,
+          color: "transparent",
+          WebkitTextStroke: "1px rgba(255,255,255,0.04)",
+          lineHeight: 1,
+          letterSpacing: "-0.04em",
+        }}
+      >
+        STACK
+      </div>
+
+      <div className="relative px-6 md:px-12 lg:px-16 pt-20 pb-32 md:pb-48">
         {/* Section label */}
-        <div className="flex items-center gap-4 mb-16 md:mb-20">
+        <div className="flex items-center gap-4 pb-16 md:pb-20">
           <span
             id="stack-label"
             className="stack-label font-mono text-xs tracking-[0.4em] uppercase"
@@ -99,33 +113,40 @@ export default function Stack() {
           <span className="stack-label-line label-line flex-1" />
         </div>
 
-        {/* Groups */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-12 gap-x-16">
+        {/* Table rows */}
+        <div className="flex flex-col">
           {STACK_GROUPS.map((group) => (
-            <div key={group.label} className="stack-group">
+            <div
+              key={group.label}
+              className="stack-row group relative grid grid-cols-1 md:grid-cols-[160px_1fr] gap-y-3 md:gap-x-16 py-7 md:py-9"
+              style={{ borderBottom: "1px solid var(--border)" }}
+            >
+              {/* Hover accent bar */}
+              <div
+                className="absolute left-0 top-0 bottom-0 w-px origin-top scale-y-0 group-hover:scale-y-100 transition-transform duration-300"
+                style={{ background: "var(--accent)" }}
+              />
+
+              {/* Category label */}
               <p
-                className="font-mono text-xs tracking-widest uppercase mb-4"
+                className="font-mono text-xs tracking-widest uppercase self-center"
                 style={{ color: "var(--fg-muted)" }}
               >
                 {group.label}
               </p>
-              <div className="flex flex-wrap gap-x-3 gap-y-2">
-                {group.items.map((item, j) => (
+
+              {/* Items */}
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+                {group.items.map((item) => (
                   <span
                     key={item}
-                    className="font-mono"
+                    className="font-mono group-hover:text-[var(--fg)] transition-colors duration-200"
                     style={{
-                      fontSize: "clamp(0.85rem, 1.5vw, 1.1rem)",
+                      fontSize: "clamp(0.9rem, 1.5vw, 1.2rem)",
                       color: "var(--fg)",
-                      lineHeight: 1.5,
                     }}
                   >
                     {item}
-                    {j < group.items.length - 1 && (
-                      <span style={{ color: "var(--border)", marginLeft: "0.3em" }}>
-                        /
-                      </span>
-                    )}
                   </span>
                 ))}
               </div>

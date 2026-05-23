@@ -1,36 +1,84 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { EASE, DUR, prefersReducedMotion } from "@/lib/motion";
+import { motion } from "framer-motion";
+import { EASE, DUR, FRAMER_EASE, prefersReducedMotion } from "@/lib/motion";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const LINKS = [
-  {
-    label: "Email",
-    value: "suryapratap0765@gmail.com",
-    href: "mailto:suryapratap0765@gmail.com",
-    external: false,
-  },
+const SECONDARY_LINKS = [
   {
     label: "GitHub",
-    value: "github.com/suryapratap-1",
+    value: "suryapratap-1",
     href: "https://github.com/suryapratap-1",
-    external: true,
   },
   {
     label: "LinkedIn",
-    value: "linkedin.com/in/suryapratapdas",
+    value: "suryapratapdas",
     href: "https://linkedin.com/in/suryapratapdas",
-    external: true,
   },
 ];
 
+function SecondaryLink({
+  label,
+  value,
+  href,
+}: Readonly<{ label: string; value: string; href: string }>) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="contact-secondary flex items-center justify-between py-5"
+      style={{ borderBottom: "1px solid var(--border)" }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <span
+        className="font-mono text-xs tracking-widest uppercase"
+        style={{ color: "var(--fg-muted)" }}
+      >
+        {label}
+      </span>
+      <div className="flex items-center gap-3">
+        <span
+          className="font-mono text-sm transition-colors duration-200"
+          style={{ color: hovered ? "var(--fg)" : "var(--fg-muted)" }}
+        >
+          {value}
+        </span>
+        <motion.div
+          animate={{ x: hovered ? 3 : 0, y: hovered ? -3 : 0 }}
+          transition={{ duration: 0.2, ease: FRAMER_EASE }}
+        >
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 14 14"
+            fill="none"
+            style={{ color: "var(--accent)" }}
+          >
+            <path
+              d="M2 12L12 2M12 2H5M12 2v7"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </motion.div>
+      </div>
+    </a>
+  );
+}
+
 export default function Contact() {
   const sectionRef = useRef<HTMLElement>(null);
+  const [emailHovered, setEmailHovered] = useState(false);
   const reduced = prefersReducedMotion();
 
   useGSAP(
@@ -43,23 +91,22 @@ export default function Contact() {
         scrollTrigger: { trigger: el.querySelector(".contact-label"), start: "top 85%" },
       });
       gsap.from(el.querySelector(".contact-label-line"), {
-        scaleX: 0, duration: 0.6, ease: EASE.transition,
+        scaleX: 0, duration: 0.6, ease: EASE.transition, delay: 0.15,
         scrollTrigger: { trigger: el.querySelector(".contact-label"), start: "top 85%" },
-        delay: 0.15,
       });
 
-      gsap.from(el.querySelector(".contact-headline"), {
-        opacity: 0, y: 40, duration: DUR.slow, ease: EASE.hero,
-        scrollTrigger: { trigger: el.querySelector(".contact-headline"), start: "top 80%" },
+      const tl = gsap.timeline({
+        scrollTrigger: { trigger: el.querySelector(".contact-body"), start: "top 75%" },
       });
-
-      el.querySelectorAll<HTMLElement>(".contact-link").forEach((link, i) => {
-        gsap.from(link, {
-          opacity: 0, y: 24, duration: DUR.base, ease: EASE.entrance,
-          delay: i * 0.1,
-          scrollTrigger: { trigger: link, start: "top 84%" },
-        });
+      tl.from(el.querySelector(".contact-intro"), {
+        opacity: 0, y: 20, duration: DUR.base, ease: EASE.entrance,
       });
+      tl.from(el.querySelector(".contact-email"), {
+        opacity: 0, y: 48, duration: DUR.slow, ease: EASE.hero,
+      }, "-=0.4");
+      tl.from(el.querySelectorAll(".contact-secondary"), {
+        opacity: 0, y: 20, duration: DUR.base, ease: EASE.entrance, stagger: 0.1,
+      }, "-=0.5");
     },
     { scope: sectionRef }
   );
@@ -69,33 +116,28 @@ export default function Contact() {
       ref={sectionRef}
       id="contact"
       aria-labelledby="contact-label"
-      className="relative py-32 md:py-48 px-6 md:px-12 lg:px-24 overflow-hidden"
-      style={{ background: "var(--bg-elevated)" }}
+      className="relative overflow-hidden"
+      style={{ background: "var(--bg)" }}
     >
-      {/* Subtle top divider */}
-      <div
-        className="absolute top-0 inset-x-0 h-px"
-        style={{
-          background:
-            "linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent)",
-        }}
-      />
+      {/* Top separator */}
+      <div className="h-px mx-6 md:mx-12 lg:mx-16" style={{ background: "var(--border)" }} />
 
       {/* Atmospheric orb */}
       <div
         className="orb"
         style={{
-          width: "500px",
-          height: "500px",
+          width: "600px",
+          height: "600px",
           background: "var(--accent)",
-          bottom: "-200px",
-          left: "-100px",
+          bottom: "-260px",
+          left: "-160px",
+          opacity: 0.45,
         }}
       />
 
-      <div className="max-w-7xl mx-auto">
+      <div className="relative px-6 md:px-12 lg:px-16 pt-20 pb-40 md:pb-60">
         {/* Section label */}
-        <div className="flex items-center gap-4 mb-16 md:mb-20">
+        <div className="flex items-center gap-4 pb-20 md:pb-28">
           <span
             id="contact-label"
             className="contact-label font-mono text-xs tracking-[0.4em] uppercase"
@@ -106,92 +148,89 @@ export default function Contact() {
           <span className="contact-label-line label-line flex-1" />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-y-16 lg:gap-x-16 items-start">
+        <div className="contact-body">
+          {/* Intro */}
+          <p
+            className="contact-intro font-mono text-xs tracking-widest uppercase mb-12 md:mb-16"
+            style={{ color: "var(--fg-muted)" }}
+          >
+            Open to Backend / DevOps roles &nbsp;·&nbsp; Bangalore &nbsp;·&nbsp; Hyderabad &nbsp;·&nbsp; Remote
+          </p>
 
-          {/* Headline */}
-          <div className="lg:col-span-6">
-            <h2
-              className="contact-headline leading-tight"
-              style={{
-                fontSize: "clamp(2.5rem, 6vw, 5.5rem)",
-                fontFamily: "var(--font-fraunces)",
-                fontWeight: 700,
-                color: "var(--fg)",
-              }}
-            >
-              Let&apos;s
-              <br />
-              <span style={{ color: "var(--fg-muted)" }}>work</span>
-              <br />
-              together.
-            </h2>
-          </div>
-
-          {/* Links */}
-          <div className="lg:col-span-6 flex flex-col gap-0">
-            {LINKS.map((link, i) => (
-              <a
-                key={link.label}
-                href={link.href}
-                target={link.external ? "_blank" : undefined}
-                rel={link.external ? "noopener noreferrer" : undefined}
-                className="contact-link group flex items-center justify-between py-6 transition-colors duration-200"
+          {/* Email — the centrepiece */}
+          <a
+            href="mailto:suryapratap0765@gmail.com"
+            className="contact-email group block mb-16 md:mb-24"
+            onMouseEnter={() => setEmailHovered(true)}
+            onMouseLeave={() => setEmailHovered(false)}
+          >
+            <div className="flex items-start gap-4 md:gap-6">
+              <span
+                className="leading-none tracking-tight"
                 style={{
-                  borderBottom: "1px solid var(--border)",
-                  color: "var(--fg-muted)",
-                }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLElement).style.color = "var(--fg)";
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLElement).style.color = "var(--fg-muted)";
+                  fontSize: "clamp(1.6rem, 4vw, 5rem)",
+                  fontFamily: "var(--font-fraunces)",
+                  fontWeight: 700,
+                  color: emailHovered ? "var(--accent)" : "var(--fg)",
+                  transition: "color 0.4s ease",
+                  wordBreak: "break-all",
                 }}
               >
-                <div>
-                  <p
-                    className="font-mono text-xs tracking-widest uppercase mb-1"
-                    style={{ color: "var(--fg-muted)" }}
-                  >
-                    {link.label}
-                  </p>
-                  <p className="font-mono text-sm md:text-base" style={{ color: "var(--fg)" }}>
-                    {link.value}
-                  </p>
-                </div>
-
+                suryapratap0765@gmail.com
+              </span>
+              <motion.div
+                className="shrink-0 mt-1 md:mt-2"
+                animate={{
+                  x: emailHovered ? 6 : 0,
+                  y: emailHovered ? -6 : 0,
+                  opacity: emailHovered ? 1 : 0.35,
+                }}
+                transition={{ duration: 0.3, ease: FRAMER_EASE }}
+              >
                 <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 20 20"
+                  width="28"
+                  height="28"
+                  viewBox="0 0 28 28"
                   fill="none"
-                  className="shrink-0 transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1"
                   style={{ color: "var(--accent)" }}
                 >
                   <path
-                    d="M4 16L16 4M16 4H7M16 4v9"
+                    d="M5 23L23 5M23 5H10M23 5v13"
                     stroke="currentColor"
-                    strokeWidth="1.5"
+                    strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   />
                 </svg>
-              </a>
-            ))}
-
-            {/* Availability callout */}
-            <div className="mt-10 flex items-center gap-3">
-              <span
-                className="w-2 h-2 rounded-full shrink-0"
-                style={{
-                  background: "var(--accent)",
-                  boxShadow: "0 0 8px var(--accent)",
-                }}
-              />
-              <p className="font-mono text-xs tracking-wide" style={{ color: "var(--fg-muted)" }}>
-                Open to Backend / DevOps roles in Bangalore, Hyderabad, or remote.
-                Actively interviewing.
-              </p>
+              </motion.div>
             </div>
+          </a>
+
+          {/* Secondary links */}
+          <div
+            className="max-w-md"
+            style={{ borderTop: "1px solid var(--border)" }}
+          >
+            {SECONDARY_LINKS.map((link) => (
+              <SecondaryLink key={link.label} {...link} />
+            ))}
+          </div>
+
+          {/* Availability */}
+          <div className="mt-10 flex items-center gap-3">
+            <span
+              className="w-1.5 h-1.5 rounded-full shrink-0"
+              style={{
+                background: "var(--accent)",
+                boxShadow: "0 0 8px var(--accent)",
+              }}
+            />
+            <p
+              className="font-mono text-xs tracking-wide"
+              style={{ color: "var(--fg-muted)" }}
+            >
+              Actively interviewing · Available from June 2026
+            </p>
           </div>
         </div>
       </div>

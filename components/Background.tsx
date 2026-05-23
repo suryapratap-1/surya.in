@@ -8,43 +8,32 @@ import { EASE, DUR, prefersReducedMotion } from "@/lib/motion";
 
 gsap.registerPlugin(ScrollTrigger);
 
-interface Role {
-  period: string;
-  title: string;
-  company: string;
-  location: string;
-  bullets: string[];
-}
-
-const EXPERIENCE: Role[] = [
+const EXPERIENCE = [
   {
     period: "Nov 2025 — Present",
-    title: "Software Developer (Full Stack & DevOps)",
     company: "Gravitones",
+    title: "Software Developer — Backend & DevOps",
     location: "Bhubaneswar",
     bullets: [
-      "Owned backend and infrastructure for a live streaming platform built with Hike — one of 4 engineers on the project.",
-      "Scaled to 60K–70K concurrent users in load testing via CDN, ECS auto-scaling, multi-AZ deployments, and read replicas.",
-      "Replaced FFmpeg/HLS transcoding (5–6 containers) with AWS Elemental MediaConvert, removing the bottleneck to 1M users.",
-      "Integrated Widevine and FairPlay DRM for end-to-end video pipeline security.",
-      "Provisioned the entire AWS stack in Terraform — the org's first fully infrastructure-as-code project.",
-      "Set up GitHub Actions CI/CD across 6 services; rolled the same standard out to other team projects.",
-      "Led incident response after a server compromise on a DigitalOcean product; migrated to fresh infra with hardened access.",
+      "Built live streaming platform for Hike — owned backend and full AWS infrastructure.",
+      "Scaled to 60–70K concurrent users in load testing via ECS auto-scaling, CDN, and multi-AZ.",
+      "Replaced 5-container FFmpeg/HLS cluster with AWS Elemental MediaConvert.",
+      "Integrated Widevine and FairPlay DRM end-to-end.",
+      "First fully IaC project in the org — entire stack provisioned in Terraform.",
+      "GitHub Actions CI/CD standardised across 6 services.",
     ],
   },
   {
     period: "Apr 2024 — Nov 2025",
+    company: "Quotus",
     title: "Software Developer",
-    company: "Quotus Software Solutions",
     location: "Bhubaneswar",
     bullets: [
-      "Owned backend for a F&B POS and channel manager integrating Square POS and Loyverse with DoorDash and Deliveroo.",
-      "Migrated to event-driven architecture on Kafka — decoupled topics with retries and dead-letter queues.",
-      "Built an LLM-assisted normalisation layer mapping payloads from 4 vendors into a single internal schema.",
-      "Set up Grafana + Prometheus + Loki observability; integrated Razorpay, Stripe, and Resend.",
-      "Stood up an on-prem bare-metal server for the Bahrain pilot, fixing a DHCP MAC-binding issue.",
-      "Full-stack features on OTA platform; Amadeus GDS + Wincloud PMS integrations.",
-      "Cut full-text search latency 30–40% via Elasticsearch migration; Redis caching on hot read paths.",
+      "Backend for F&B POS connecting Square / Loyverse to DoorDash and Deliveroo.",
+      "Kafka-based event-driven architecture with retry queues and dead-letter handling.",
+      "LLM-assisted normalisation layer mapping 4 vendor payloads to one internal schema.",
+      "Grafana + Prometheus + Loki observability; Razorpay, Stripe, and Resend integrations.",
+      "Elasticsearch migration cut p95 search latency 30–40%; Redis caching on hot paths.",
     ],
   },
 ];
@@ -70,17 +59,23 @@ export default function Background() {
         scrollTrigger: { trigger: el.querySelector(".bg-label"), start: "top 85%" },
       });
       gsap.from(el.querySelector(".bg-label-line"), {
-        scaleX: 0, duration: 0.6, ease: EASE.transition,
+        scaleX: 0, duration: 0.6, ease: EASE.transition, delay: 0.15,
         scrollTrigger: { trigger: el.querySelector(".bg-label"), start: "top 85%" },
-        delay: 0.15,
       });
 
-      el.querySelectorAll<HTMLElement>(".bg-role").forEach((role, i) => {
-        gsap.from(role, {
-          opacity: 0, y: 32, duration: DUR.base, ease: EASE.entrance,
-          delay: i * 0.1,
-          scrollTrigger: { trigger: role, start: "top 84%" },
+      el.querySelectorAll<HTMLElement>(".bg-role").forEach((role) => {
+        const tl = gsap.timeline({
+          scrollTrigger: { trigger: role, start: "top 78%" },
         });
+        tl.from(role.querySelector(".bg-period"), {
+          opacity: 0, x: -20, duration: DUR.base, ease: EASE.entrance,
+        });
+        tl.from(role.querySelector(".bg-company"), {
+          opacity: 0, y: 48, duration: DUR.slow, ease: EASE.hero,
+        }, "-=0.5");
+        tl.from(role.querySelectorAll(".bg-bullet"), {
+          opacity: 0, y: 16, duration: DUR.base, ease: EASE.entrance, stagger: 0.06,
+        }, "-=0.6");
       });
 
       gsap.from(el.querySelector(".bg-education"), {
@@ -96,12 +91,15 @@ export default function Background() {
       ref={sectionRef}
       id="background"
       aria-labelledby="background-label"
-      className="relative py-32 md:py-48 px-6 md:px-12 lg:px-24"
+      className="relative overflow-hidden"
       style={{ background: "var(--bg)" }}
     >
-      <div className="max-w-7xl mx-auto">
+      {/* Top separator */}
+      <div className="h-px mx-6 md:mx-12 lg:mx-16" style={{ background: "var(--border)" }} />
+
+      <div className="px-6 md:px-12 lg:px-16 pt-20 pb-32 md:pb-48">
         {/* Section label */}
-        <div className="flex items-center gap-4 mb-16 md:mb-20">
+        <div className="flex items-center gap-4 pb-16 md:pb-24">
           <span
             id="background-label"
             className="bg-label font-mono text-xs tracking-[0.4em] uppercase"
@@ -113,31 +111,34 @@ export default function Background() {
         </div>
 
         {/* Experience */}
-        <div className="flex flex-col gap-16 md:gap-24 mb-20 md:mb-28">
+        <div className="flex flex-col">
           {EXPERIENCE.map((role) => (
             <div
               key={role.company}
-              className="bg-role grid grid-cols-1 lg:grid-cols-12 gap-y-6 lg:gap-x-16"
+              className="bg-role grid grid-cols-1 lg:grid-cols-12 gap-y-10 lg:gap-x-16 py-16 md:py-24"
+              style={{ borderBottom: "1px solid var(--border)" }}
             >
-              {/* Left — meta */}
-              <div className="lg:col-span-4">
+              {/* Left — period + company + title */}
+              <div className="lg:col-span-5 flex flex-col justify-start">
                 <p
-                  className="font-mono text-xs tracking-widest uppercase mb-2"
+                  className="bg-period font-mono text-xs tracking-widest uppercase mb-5"
                   style={{ color: "var(--accent)" }}
                 >
                   {role.period}
                 </p>
                 <h3
-                  className="text-lg font-semibold mb-1"
+                  className="bg-company leading-none tracking-tight mb-5"
                   style={{
-                    color: "var(--fg)",
+                    fontSize: "clamp(2.5rem, 4.5vw, 5.5rem)",
                     fontFamily: "var(--font-fraunces)",
+                    fontWeight: 700,
+                    color: "var(--fg)",
                   }}
                 >
                   {role.company}
                 </h3>
                 <p
-                  className="font-mono text-xs"
+                  className="font-mono text-xs tracking-wide"
                   style={{ color: "var(--fg-muted)" }}
                 >
                   {role.title}
@@ -151,17 +152,19 @@ export default function Background() {
               </div>
 
               {/* Right — bullets */}
-              <ul className="lg:col-span-8 flex flex-col gap-3">
-                {role.bullets.map((bullet, i) => (
+              <ul className="lg:col-span-7 flex flex-col gap-5 lg:pt-2">
+                {role.bullets.map((bullet, j) => (
                   <li
-                    key={i}
-                    className="flex items-start gap-3 text-sm leading-relaxed"
+                    key={bullet}
+                    className="bg-bullet flex items-start gap-5 text-sm md:text-base leading-relaxed"
                     style={{ color: "var(--fg-muted)" }}
                   >
                     <span
-                      className="shrink-0 mt-2 w-1 h-1 rounded-full"
-                      style={{ background: "var(--accent)" }}
-                    />
+                      className="font-mono text-xs shrink-0 mt-1 tabular-nums"
+                      style={{ color: "var(--accent)" }}
+                    >
+                      {String(j + 1).padStart(2, "0")}
+                    </span>
                     {bullet}
                   </li>
                 ))}
@@ -171,22 +174,22 @@ export default function Background() {
         </div>
 
         {/* Education */}
-        <div
-          className="bg-education glass rounded-2xl p-8 md:p-10"
-        >
+        <div className="bg-education pt-16 md:pt-24">
           <p
-            className="font-mono text-xs tracking-widest uppercase mb-3"
+            className="font-mono text-xs tracking-widest uppercase mb-8"
             style={{ color: "var(--fg-muted)" }}
           >
             Education
           </p>
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
             <div>
               <h3
-                className="text-xl font-semibold mb-1"
+                className="leading-tight mb-2"
                 style={{
-                  color: "var(--fg)",
+                  fontSize: "clamp(1.5rem, 2.8vw, 2.8rem)",
                   fontFamily: "var(--font-fraunces)",
+                  fontWeight: 700,
+                  color: "var(--fg)",
                 }}
               >
                 {EDUCATION.degree}
@@ -195,11 +198,11 @@ export default function Background() {
                 className="font-mono text-sm"
                 style={{ color: "var(--fg-muted)" }}
               >
-                {EDUCATION.institution} — {EDUCATION.location}
+                {EDUCATION.institution} &nbsp;·&nbsp; {EDUCATION.location}
               </p>
             </div>
             <p
-              className="font-mono text-xs tracking-widest"
+              className="font-mono text-xs tracking-widest shrink-0"
               style={{ color: "var(--accent)" }}
             >
               {EDUCATION.period}
