@@ -212,7 +212,7 @@ function ProjectRow({ project, i }: Readonly<{ project: Project; i: number }>) {
               fontSize: "clamp(3.5rem, 7vw, 8rem)",
               fontFamily: "var(--font-fraunces)",
               fontWeight: 700,
-              color: hovered ? project.accent : "rgba(245,244,240,0.15)",
+              color: hovered ? project.accent : "rgba(245,244,240,0.28)",
               transition: "color 0.5s ease",
             }}
           >

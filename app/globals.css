@@ -29,12 +29,12 @@
 }
 
 /* ── Reset ───────────────────────────────────────────────────────── */
+/* margin/padding reset is handled by Tailwind's Preflight inside @layer base.
+   Declaring them here (outside any layer) would override all utility classes. */
 *,
 *::before,
 *::after {
   box-sizing: border-box;
-  margin: 0;
-  padding: 0;
 }
 
 /* ── Base ────────────────────────────────────────────────────────── */
