@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useLayoutEffect } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -12,44 +12,53 @@ gsap.registerPlugin(ScrollTrigger);
 
 const HEADLINE_LINES = ["Software &", "DevOps", "Engineer."];
 
-export default function Hero() {
+export default function Hero({ ready = false }: Readonly<{ ready?: boolean }>) {
   const containerRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
   const reduced = prefersReducedMotion();
 
+  // Set initial hidden state before first paint — prevents flash when loader exits
+  useLayoutEffect(() => {
+    if (!heroRef.current) return;
+    if (reduced) {
+      gsap.set(heroRef.current.querySelectorAll(".hero-line, .hero-identity, .hero-desc, .hero-meta"), {
+        opacity: 1, y: 0,
+      });
+    } else {
+      gsap.set(heroRef.current.querySelectorAll(".hero-line"), { y: "105%" });
+      gsap.set(heroRef.current.querySelector(".hero-identity"), { opacity: 0, y: 16 });
+      gsap.set(heroRef.current.querySelector(".hero-desc"), { opacity: 0, y: 20 });
+      gsap.set(heroRef.current.querySelectorAll(".hero-meta"), { opacity: 0, y: 12 });
+    }
+  }, [reduced]);
+
+  // Animate in only once loader is done
   useGSAP(
     () => {
-      if (!heroRef.current) return;
-
-      if (reduced) {
-        gsap.set(heroRef.current.querySelectorAll(".hero-line, .hero-identity, .hero-desc, .hero-meta"), {
-          opacity: 1, y: 0,
-        });
-        return;
-      }
+      if (reduced || !ready || !heroRef.current) return;
 
       const tl = gsap.timeline({ delay: 0.1 });
 
-      tl.from(heroRef.current.querySelectorAll(".hero-line"), {
-        y: "105%",
+      tl.to(heroRef.current.querySelectorAll(".hero-line"), {
+        y: "0%",
         duration: DUR.slow,
         stagger: 0.08,
         ease: EASE.hero,
       });
 
-      tl.from(heroRef.current.querySelector(".hero-identity"), {
-        opacity: 0, y: 16, duration: DUR.base, ease: EASE.entrance,
+      tl.to(heroRef.current.querySelector(".hero-identity"), {
+        opacity: 1, y: 0, duration: DUR.base, ease: EASE.entrance,
       }, `-=${DUR.slow * 0.4}`);
 
-      tl.from(heroRef.current.querySelector(".hero-desc"), {
-        opacity: 0, y: 20, duration: DUR.base, ease: EASE.entrance,
+      tl.to(heroRef.current.querySelector(".hero-desc"), {
+        opacity: 1, y: 0, duration: DUR.base, ease: EASE.entrance,
       }, "-=0.5");
 
-      tl.from(heroRef.current.querySelectorAll(".hero-meta"), {
-        opacity: 0, y: 12, duration: 0.6, ease: EASE.entrance, stagger: 0.08,
+      tl.to(heroRef.current.querySelectorAll(".hero-meta"), {
+        opacity: 1, y: 0, duration: 0.6, ease: EASE.entrance, stagger: 0.08,
       }, "-=0.4");
     },
-    { scope: heroRef }
+    { scope: heroRef, dependencies: [ready, reduced] }
   );
 
   const { scrollYProgress } = useScroll({
@@ -94,7 +103,6 @@ export default function Hero() {
           className="absolute inset-0 flex flex-col justify-center px-6 md:px-14 lg:px-20 pointer-events-none"
         >
           <div className="max-w-7xl mx-auto w-full">
-            {/* Stacked headline */}
             <h1
               className="mb-8 md:mb-10"
               style={{
@@ -119,7 +127,6 @@ export default function Hero() {
               ))}
             </h1>
 
-            {/* Identity line */}
             <p
               className="hero-identity font-mono text-xs tracking-[0.2em] uppercase mb-6"
               style={{ color: "var(--fg-muted)" }}
@@ -127,7 +134,6 @@ export default function Hero() {
               Surya Pratap Das&nbsp;&nbsp;·&nbsp;&nbsp;Bhubaneswar, India
             </p>
 
-            {/* Description */}
             <p
               className="hero-desc text-base md:text-lg font-light leading-relaxed mb-8 max-w-[60ch]"
               style={{ color: "var(--fg-secondary)" }}
@@ -137,7 +143,6 @@ export default function Hero() {
               to seventy thousand concurrent users.
             </p>
 
-            {/* Meta */}
             <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
               <span
                 className="hero-meta inline-flex items-center gap-2 font-mono text-xs tracking-widest uppercase"
@@ -159,7 +164,6 @@ export default function Hero() {
           </div>
         </motion.div>
 
-        {/* Scroll indicator */}
         <ScrollIndicator scrollYProgress={scrollYProgress} />
       </div>
     </section>

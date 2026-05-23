@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import Cursor from "@/components/Cursor";
+import Loader from "@/components/Loader";
 import Navbar from "@/components/Navbar";
 import ScrollProgress from "@/components/ScrollProgress";
 import Hero from "@/components/Hero";
@@ -12,41 +14,27 @@ import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
 
 export default function Home() {
+  const [loaderDone, setLoaderDone] = useState(false);
+
   return (
     <>
-      {/* Skip-to-content link — keyboard / screen reader users */}
       <a href="#main-content" className="skip-link">
         Skip to content
       </a>
 
-      {/* White dot cursor follower */}
+      {!loaderDone && <Loader onComplete={() => setLoaderDone(true)} />}
+
       <Cursor />
-
-      {/* Scroll progress bar */}
       <ScrollProgress />
-
-      {/* Fixed navbar */}
       <Navbar />
 
       <main id="main-content">
-        {/* Hero — 300vh sticky scroll with canvas frame scrubber */}
-        <Hero />
-
-        {/* 01 — What I Build */}
+        <Hero ready={loaderDone} />
         <WhatIBuild />
-
-        {/* 02 — Selected Work */}
         <SelectedWork />
-
-        {/* 03 — Stack */}
         <Stack />
-
-        {/* 04 — Background */}
         <Background />
-
-        {/* 05 — Contact */}
         <Contact />
-
         <Footer />
       </main>
     </>
