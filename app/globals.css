@@ -1,24 +1,31 @@
 @import "tailwindcss";
 
+/* ── Design tokens ─────────────────────────────────────────────────── */
 :root {
-  /* ── Core palette ──────────────────────────────────────────────── */
-  --bg:            #0d0d10;
-  --bg-elevated:   #131318;
-  --fg:            #f5f4f0;
-  --fg-muted:      #6e6e76;
-  --accent:        #3ef0ff;   /* cyan-leaning electric */
-  --accent-amber:  #f5a642;   /* warm counter-accent, used sparingly */
-  --border:        rgba(255, 255, 255, 0.07);
+  --bg:              #0a0a0c;
+  --bg-elevated:     rgba(255, 255, 255, 0.04);
+  --fg:              #f5f4f0;
+  --fg-muted:        rgba(245, 244, 240, 0.5);
+  --fg-secondary:    rgba(245, 244, 240, 0.7);
+  --fg-tertiary:     rgba(245, 244, 240, 0.4);
+  --accent-cyan:     #7dd3fc;
+  --accent:          #7dd3fc;   /* alias for compat */
+  --stroke:          rgba(255, 255, 255, 0.06);
+  --border:          rgba(255, 255, 255, 0.06);
 
-  /* ── Glass surfaces ────────────────────────────────────────────── */
-  --glass-bg:      rgba(255, 255, 255, 0.05);
-  --glass-border:  rgba(255, 255, 255, 0.07);
-  --glass-blur:    16px;
+  --glass-bg:        rgba(255, 255, 255, 0.04);
+  --glass-border:    rgba(255, 255, 255, 0.06);
+  --glass-blur:      16px;
 
-  /* ── Typography ────────────────────────────────────────────────── */
-  --font-display:  var(--font-fraunces);
-  --font-sans:     var(--font-inter);
-  --font-mono:     var(--font-jetbrains);
+  --font-display:    var(--font-instrument);
+  --font-sans:       var(--font-inter);
+  --font-mono:       var(--font-jetbrains);
+
+  /* spacing tokens */
+  --space-section:   clamp(11.25rem, 20vw, 20rem);   /* 180–320px */
+  --space-card:      clamp(6.25rem, 12vw, 10rem);     /* 100–160px */
+  --space-label:     clamp(3rem, 6vw, 6rem);          /* 48–96px */
+  --space-quote:     clamp(12.5rem, 24vw, 22.5rem);   /* 200–360px */
 }
 
 @theme inline {
@@ -28,26 +35,26 @@
   --font-mono: var(--font-jetbrains);
 }
 
-/* ── Reset ───────────────────────────────────────────────────────── */
-/* margin/padding reset is handled by Tailwind's Preflight inside @layer base.
-   Declaring them here (outside any layer) would override all utility classes. */
+/* ── Reset ───────────────────────────────────────────────────────────── */
+/* margin/padding reset lives inside Tailwind's @layer base (Preflight).
+   Declaring them outside any layer overrides all utility classes in v4. */
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
 
-/* ── Base ────────────────────────────────────────────────────────── */
+/* ── Base ────────────────────────────────────────────────────────────── */
 html {
   background-color: var(--bg);
-  scroll-behavior: auto; /* Lenis handles smooth scroll */
+  scroll-behavior: auto;
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
 }
 
-::-webkit-scrollbar        { width: 4px; }
+::-webkit-scrollbar        { width: 3px; }
 ::-webkit-scrollbar-track  { background: transparent; }
-::-webkit-scrollbar-thumb  { background: rgba(255, 255, 255, 0.12); border-radius: 2px; }
+::-webkit-scrollbar-thumb  { background: rgba(255, 255, 255, 0.1); border-radius: 2px; }
 
 body {
   background-color: var(--bg);
@@ -58,19 +65,42 @@ body {
   overflow-x: hidden;
 }
 
+/* Grain overlay */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  pointer-events: none;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='256' height='256'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='256' height='256' filter='url(%23n)' opacity='1'/></svg>");
+  background-repeat: repeat;
+  background-size: 200px 200px;
+}
+
+/* Atmospheric radial — subtle, static */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(125, 211, 252, 0.03) 0%, transparent 70%);
+}
+
 ::selection {
-  background: var(--accent);
+  background: var(--accent-cyan);
   color: #000;
 }
 
-/* ── Skip link ───────────────────────────────────────────────────── */
+/* ── Skip link ───────────────────────────────────────────────────────── */
 .skip-link {
   position: absolute;
   top: -40px;
   left: 16px;
   z-index: 9999;
   padding: 8px 16px;
-  background: var(--accent);
+  background: var(--accent-cyan);
   color: #000;
   font-size: 0.75rem;
   font-weight: 600;
@@ -78,45 +108,46 @@ body {
   text-decoration: none;
   transition: top 0.2s;
 }
-.skip-link:focus {
-  top: 16px;
-}
+.skip-link:focus { top: 16px; }
 
-/* ── Focus rings (designed, not browser default) ─────────────────── */
+/* ── Focus rings ─────────────────────────────────────────────────────── */
 :focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 3px;
+  outline: 1.5px solid var(--accent-cyan);
+  outline-offset: 4px;
   border-radius: 2px;
 }
 
-/* ── Cursor hide for custom cursor ──────────────────────────────── */
+/* ── Custom cursor hide ──────────────────────────────────────────────── */
 @media (pointer: fine) {
-  html, a, button, [role="button"] {
-    cursor: none;
-  }
+  html, a, button, [role="button"] { cursor: none; }
 }
 
-/* ── Hero letter-clip containers ─────────────────────────────────── */
+/* ── Hero letter-clip ────────────────────────────────────────────────── */
 .char-wrap {
   display: inline-block;
   overflow: hidden;
   line-height: 1.05;
   vertical-align: bottom;
 }
-.char {
-  display: inline-block;
+.char { display: inline-block; }
+
+/* Hero stacked line wrap */
+.hero-line-wrap {
+  display: block;
+  overflow: hidden;
+  line-height: 0.92;
 }
 
-/* ── Section label underline ──────────────────────────────────────── */
+/* ── Section label underline ─────────────────────────────────────────── */
 .label-line {
   display: block;
   height: 1px;
-  background: var(--accent);
+  background: var(--stroke);
   transform-origin: left center;
   transform: scaleX(0);
 }
 
-/* ── Glass panel ──────────────────────────────────────────────────── */
+/* ── Glass panel ─────────────────────────────────────────────────────── */
 .glass {
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
@@ -124,26 +155,31 @@ body {
   -webkit-backdrop-filter: blur(var(--glass-blur));
 }
 
-/* ── Atmospheric gradient orbs (behind content, never decorative) ── */
+/* ── Atmospheric orb ─────────────────────────────────────────────────── */
 .orb {
   position: absolute;
   border-radius: 50%;
   pointer-events: none;
   filter: blur(80px);
-  opacity: 0.18;
+  opacity: 0.12;
 }
 
-/* ── Reduced motion ──────────────────────────────────────────────── */
+/* ── Marquee ─────────────────────────────────────────────────────────── */
+.marquee-outer { overflow: hidden; }
+.marquee-track {
+  display: flex;
+  white-space: nowrap;
+  will-change: transform;
+}
+
+/* ── Reduced motion ──────────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
-  /* Lenis and GSAP are opted out in JS; ensure CSS transitions are off */
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
-
-  /* Lenis smooth-scroll wrapper — keep it inert */
   [data-lenis-wrapper] {
     overflow: auto !important;
     height: auto !important;

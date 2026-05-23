@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
-import { Fraunces, Inter, JetBrains_Mono } from "next/font/google";
+import { Instrument_Serif, Inter, JetBrains_Mono } from "next/font/google";
 import SmoothScroll from "@/components/SmoothScroll";
 import "./globals.css";
 
-const fraunces = Fraunces({
-  variable: "--font-fraunces",
+const instrumentSerif = Instrument_Serif({
+  variable: "--font-instrument",
   subsets: ["latin"],
+  weight: "400",
+  style: ["normal", "italic"],
   display: "swap",
-  axes: ["SOFT", "WONK"],
 });
 
 const inter = Inter({
@@ -24,13 +25,13 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Surya Pratap Das — Backend & DevOps Engineer",
+  title: "Surya Pratap Das — Software & DevOps Engineer",
   description:
-    "Backend and DevOps engineer with 2+ years building event-driven systems, cloud infrastructure at scale, and production-grade CI/CD pipelines.",
+    "Software and DevOps engineer. Event-driven systems, AWS infrastructure at scale, production CI/CD. Most recently at Gravitones, scaling a live streaming platform to 60–70K concurrent users.",
   openGraph: {
-    title: "Surya Pratap Das — Backend & DevOps Engineer",
+    title: "Surya Pratap Das — Software & DevOps Engineer",
     description:
-      "Scaled a live streaming platform to 60K–70K concurrent users. Kafka-based event-driven middleware. AWS ECS, Terraform IaC, GitHub Actions.",
+      "Scaled a live streaming platform to 60–70K concurrent users. Kafka event-driven middleware. AWS ECS, Terraform IaC, GitHub Actions.",
     type: "website",
   },
 };
@@ -43,7 +44,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${fraunces.variable} ${inter.variable} ${jetbrainsMono.variable}`}
+      className={`${instrumentSerif.variable} ${inter.variable} ${jetbrainsMono.variable}`}
     >
       <body className="antialiased overflow-x-hidden">
         <SmoothScroll>{children}</SmoothScroll>

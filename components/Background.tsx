@@ -130,8 +130,8 @@ export default function Background() {
                   className="bg-company leading-none tracking-tight mb-5"
                   style={{
                     fontSize: "clamp(2.5rem, 4.5vw, 5.5rem)",
-                    fontFamily: "var(--font-fraunces)",
-                    fontWeight: 700,
+                    fontFamily: "var(--font-display)",
+                    fontWeight: 400,
                     color: "var(--fg)",
                   }}
                 >
@@ -187,8 +187,8 @@ export default function Background() {
                 className="leading-tight mb-2"
                 style={{
                   fontSize: "clamp(1.5rem, 2.8vw, 2.8rem)",
-                  fontFamily: "var(--font-fraunces)",
-                  fontWeight: 700,
+                  fontFamily: "var(--font-display)",
+                  fontWeight: 400,
                   color: "var(--fg)",
                 }}
               >

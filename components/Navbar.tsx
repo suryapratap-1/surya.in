@@ -118,7 +118,7 @@ export default function Navbar() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.07, ease: FRAMER_EASE }}
                 className="text-2xl font-semibold"
-                style={{ color: "var(--fg)", fontFamily: "var(--font-fraunces)" }}
+                style={{ color: "var(--fg)", fontFamily: "var(--font-display)" }}
               >
                 {link.label}
               </motion.a>

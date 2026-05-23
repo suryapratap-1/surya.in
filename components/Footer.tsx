@@ -3,16 +3,18 @@
 const SOCIALS = [
   { label: "GitHub", href: "https://github.com/suryapratap-1" },
   { label: "LinkedIn", href: "https://linkedin.com/in/suryapratapdas" },
-  { label: "Email", href: "mailto:suryapratap0765@gmail.com" },
+  { label: "Email", href: "mailto:dev.suryapratap65@gmail.com" },
 ];
+
+const TOOLS = ["Next.js", "GSAP", "Lenis", "Tailwind", "Framer Motion", "Vercel"];
 
 export default function Footer() {
   return (
     <footer
-      className="relative py-12 px-6 md:px-12 lg:px-24"
+      className="relative"
       style={{ borderTop: "1px solid var(--border)", background: "var(--bg)" }}
     >
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+      <div className="px-6 md:px-12 lg:px-16 py-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div>
           <p
             className="font-mono text-xs tracking-widest uppercase mb-1"
@@ -45,9 +47,23 @@ export default function Footer() {
             </a>
           ))}
         </nav>
+      </div>
 
-        <p className="font-mono text-xs" style={{ color: "var(--fg-muted)" }}>
-          Built with Next.js + GSAP
+      {/* Tool credits */}
+      <div
+        className="px-6 md:px-12 lg:px-16 py-5"
+        style={{ borderTop: "1px solid var(--border)" }}
+      >
+        <p className="font-mono text-xs" style={{ color: "var(--fg-tertiary)" }}>
+          Website built using:{" "}
+          {TOOLS.map((tool, i) => (
+            <span key={tool}>
+              {tool}
+              {i < TOOLS.length - 1 && (
+                <span style={{ color: "var(--border)", margin: "0 0.5em" }}>·</span>
+              )}
+            </span>
+          ))}
         </p>
       </div>
     </footer>
