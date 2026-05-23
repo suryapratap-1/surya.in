@@ -6,15 +6,35 @@ import { prefersReducedMotion } from "@/lib/motion";
 
 export default function Loader({ onComplete }: Readonly<{ onComplete: () => void }>) {
   const overlayRef = useRef<HTMLDivElement>(null);
-  const counterRef = useRef<HTMLSpanElement>(null);
+  const greetingRef = useRef<HTMLParagraphElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
   const onCompleteRef = useRef(onComplete);
-  onCompleteRef.current = onComplete;
+
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
 
   useEffect(() => {
     const overlay = overlayRef.current;
-    const counter = counterRef.current;
+    const greeting = greetingRef.current;
     const progress = progressRef.current;
+
+    const greetings = [
+      "Hello",
+      "Bonjour",
+      "Hola",
+      "こんにちは",
+      "你好",
+      "안녕하세요",
+      "مرحبا",
+      "Olá",
+      "Здравствуйте",
+      "नमस्ते",
+      "Namaste",
+    ];
+    const greetingDurations = [240, 220, 200, 180, 170, 160, 180, 200, 220, 240, 9999];
+    let greetingIndex = 0;
+    let greetingInterval: number | null = null;
 
     // Lock scroll while loader is active
     document.documentElement.style.overflow = "hidden";
@@ -25,40 +45,50 @@ export default function Loader({ onComplete }: Readonly<{ onComplete: () => void
       return;
     }
 
-    if (!overlay || !counter || !progress) return;
+    if (!overlay || !greeting || !progress) return;
 
-    const obj = { count: 0 };
+    greeting.textContent = greetings[greetingIndex];
+    const scheduleNextGreeting = () => {
+      const duration = greetingDurations[greetingIndex] ?? 400;
+      greetingInterval = window.setTimeout(() => {
+        if (greetingIndex < greetings.length - 1) {
+          greetingIndex += 1;
+          greeting.textContent = greetings[greetingIndex];
+          scheduleNextGreeting();
+        }
+      }, duration);
+    };
+    scheduleNextGreeting();
+
     const tl = gsap.timeline();
 
-    // Entrance — counter fades in (fromTo so the opacity:0 inline style doesn't confuse GSAP)
-    tl.fromTo(counter, { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, 0.1);
+    // Entrance — greeting fades in
+    tl.fromTo(greeting, { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, 0.1);
 
-    // Count 0 → 100
+    // Progress fill animation
     tl.to(
-      obj,
+      progress,
       {
-        count: 100,
-        duration: 2.0,
+        duration: 1.5,
         ease: "power2.inOut",
-        onUpdate() {
-          const val = Math.round(obj.count);
-          counter.textContent = String(val);
-          progress.style.transform = `scaleX(${val / 100})`;
-        },
+        transform: "scaleX(1)",
       },
       0.4
     );
 
-    // Hold at 100
-    tl.to({}, { duration: 0.35 });
+    // Hold at full progress
+    tl.to({}, { duration: 0.15 });
 
     // Slide the whole overlay up — reveals the page below
     tl.to(overlay, {
       yPercent: -100,
-      duration: 1.1,
+      duration: 0.95,
       ease: "expo.inOut",
       onComplete: () => {
         document.documentElement.style.overflow = "";
+        if (greetingInterval !== null) {
+          window.clearTimeout(greetingInterval);
+        }
         onCompleteRef.current();
       },
     });
@@ -66,6 +96,9 @@ export default function Loader({ onComplete }: Readonly<{ onComplete: () => void
     return () => {
       tl.kill();
       document.documentElement.style.overflow = "";
+      if (greetingInterval !== null) {
+        window.clearTimeout(greetingInterval);
+      }
     };
   }, []);
 
@@ -107,7 +140,7 @@ export default function Loader({ onComplete }: Readonly<{ onComplete: () => void
         surya.in
       </p>
 
-      {/* Counter */}
+      {/* Greeting */}
       <div
         style={{
           position: "absolute",
@@ -117,21 +150,20 @@ export default function Loader({ onComplete }: Readonly<{ onComplete: () => void
           justifyContent: "center",
         }}
       >
-        <span
-          ref={counterRef}
+        <p
+          ref={greetingRef}
           style={{
             fontFamily: "var(--font-display)",
             fontWeight: 400,
-            fontSize: "clamp(96px, 18vw, 220px)",
+            fontSize: "clamp(56px, 10vw, 140px)",
             lineHeight: 1,
             letterSpacing: "-0.04em",
             color: "var(--fg)",
-            fontVariantNumeric: "tabular-nums",
             opacity: 0,
           }}
         >
-          0
-        </span>
+          Hello
+        </p>
       </div>
 
       {/* Bottom */}
