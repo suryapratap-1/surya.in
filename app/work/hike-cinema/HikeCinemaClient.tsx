@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -115,6 +116,9 @@ function BackLink({ label, href }: Readonly<{ label: string; href: string }>) {
 }
 
 export default function HikeCinemaClient() {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
   return (
     <div style={{ background: "var(--bg)", minHeight: "100vh", color: "var(--fg)" }}>
 
