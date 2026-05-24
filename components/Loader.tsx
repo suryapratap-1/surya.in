@@ -124,7 +124,7 @@ export default function Loader({ onComplete }: Readonly<{ onComplete: () => void
           color: "var(--fg-tertiary)",
         }}
       >
-        Portfolio — 2025
+        Portfolio — {new Date().getFullYear()}
       </p>
 
       {/* Top-right */}

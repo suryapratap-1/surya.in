@@ -78,7 +78,7 @@ export default function Hero({ ready = false }: Readonly<{ ready?: boolean }>) {
 
         {/* Canvas */}
         <div className="absolute inset-0">
-          <ScrollyCanvas containerRef={containerRef} />
+          <ScrollyCanvas scrollYProgress={scrollYProgress} />
         </div>
 
         {/* Vignette */}
