@@ -111,7 +111,7 @@ export default function Contact() {
               className="font-mono text-xs tracking-wide"
               style={{ color: "var(--fg-muted)" }}
             >
-              Actively interviewing · Available from June 2026 · Bangalore / Hyderabad / Remote
+              Actively interviewing · Available from June 2026 · Bangalore / Gurugram / Remote · Freelance welcome
             </p>
           </div>
         </div>

@@ -158,7 +158,13 @@ export default function Hero({ ready = false }: Readonly<{ ready?: boolean }>) {
                 className="hero-meta font-mono text-xs tracking-widest uppercase"
                 style={{ color: "var(--fg-tertiary)" }}
               >
-                Open to Bangalore / Hyderabad
+                Bangalore / Gurugram / Remote
+              </span>
+              <span
+                className="hero-meta font-mono text-xs tracking-widest uppercase"
+                style={{ color: "var(--fg-tertiary)" }}
+              >
+                Open to freelance
               </span>
             </div>
           </div>

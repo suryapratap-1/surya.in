@@ -8,6 +8,7 @@ import ScrollProgress from "@/components/ScrollProgress";
 import Hero from "@/components/Hero";
 import WhatIBuild from "@/components/WhatIBuild";
 import SelectedWork from "@/components/SelectedWork";
+import PullQuote from "@/components/PullQuote";
 import Stack from "@/components/Stack";
 import Background from "@/components/Background";
 import Contact from "@/components/Contact";
@@ -32,6 +33,7 @@ export default function Home() {
         <Hero ready={loaderDone} />
         <WhatIBuild />
         <SelectedWork />
+        <PullQuote />
         <Stack />
         <Background />
         <Contact />
