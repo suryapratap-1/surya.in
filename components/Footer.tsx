@@ -3,6 +3,7 @@
 const SOCIALS = [
   { label: "GitHub", href: "https://github.com/suryapratap-1" },
   { label: "LinkedIn", href: "https://linkedin.com/in/suryapratapdas" },
+  { label: "X", href: "https://x.com/SuryaPratapDas4" },
   { label: "Email", href: "mailto:dev.suryapratap65@gmail.com" },
 ];
 

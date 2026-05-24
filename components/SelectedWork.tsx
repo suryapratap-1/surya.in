@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Link from "next/link";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -24,6 +25,7 @@ interface Project {
   accent: string;
   reversed: boolean;
   deepIndent?: boolean;
+  screenshotsHref?: string;
 }
 
 const PROJECTS: Project[] = [
@@ -42,6 +44,7 @@ const PROJECTS: Project[] = [
     github: "https://github.com/suryapratap-1",
     accent: "#3ef0ff",
     reversed: false,
+    screenshotsHref: "/work/hike-cinema",
   },
   {
     index: "02",
@@ -242,6 +245,36 @@ function ProjectRow({ project }: Readonly<{ project: Project }>) {
           </p>
         </div>
       </div>
+
+      {/* CTA */}
+      {project.screenshotsHref && (
+        <div className="px-6 md:px-12 lg:px-16 pb-14">
+          <Link
+            href={project.screenshotsHref}
+            className="inline-flex items-center gap-3 font-mono text-xs tracking-widest uppercase px-5 py-3 transition-colors duration-200"
+            style={{
+              color: project.accent,
+              border: `1px solid ${project.accent}40`,
+              borderRadius: "4px",
+            }}
+            onMouseEnter={(e) => {
+              const el = e.currentTarget as HTMLElement;
+              el.style.background = `${project.accent}10`;
+              el.style.borderColor = project.accent;
+            }}
+            onMouseLeave={(e) => {
+              const el = e.currentTarget as HTMLElement;
+              el.style.background = "transparent";
+              el.style.borderColor = `${project.accent}40`;
+            }}
+          >
+            View case study
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+              <path d="M1 9L9 1M9 1H3M9 1v6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </Link>
+        </div>
+      )}
 
       {/* Bottom separator */}
       <div

@@ -13,6 +13,7 @@ const LINKS = [
   { label: "Email", href: "mailto:dev.suryapratap65@gmail.com", external: false },
   { label: "GitHub", href: "https://github.com/suryapratap-1", external: true },
   { label: "LinkedIn", href: "https://linkedin.com/in/suryapratapdas", external: true },
+  { label: "X", href: "https://x.com/SuryaPratapDas4", external: true },
 ];
 
 export default function Contact() {
