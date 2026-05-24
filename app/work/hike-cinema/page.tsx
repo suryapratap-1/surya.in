@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { FRAMER_EASE } from "@/lib/motion";
 
@@ -97,24 +97,32 @@ function ScreenshotStack({ shots }: Readonly<{ shots: typeof ADMIN_SCREENSHOTS }
   );
 }
 
+function BackButton({ label, onBack }: Readonly<{ label: string; onBack: () => void }>) {
+  return (
+    <button
+      onClick={onBack}
+      className="inline-flex items-center gap-2 font-mono text-xs tracking-widest uppercase transition-colors duration-200 cursor-pointer"
+      style={{ color: "var(--fg-muted)" }}
+      onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.color = "var(--fg)")}
+      onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.color = "var(--fg-muted)")}
+    >
+      <svg width="14" height="10" viewBox="0 0 14 10" fill="none">
+        <path d="M13 5H1M1 5L5 1M1 5L5 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+      {label}
+    </button>
+  );
+}
+
 export default function HikeCinemaPage() {
+  const router = useRouter();
+
   return (
     <div style={{ background: "var(--bg)", minHeight: "100vh", color: "var(--fg)" }}>
 
       {/* Nav */}
       <div className="px-6 md:px-12 lg:px-20 pt-8 pb-4">
-        <Link
-          href="/#work"
-          className="inline-flex items-center gap-2 font-mono text-xs tracking-widest uppercase transition-colors duration-200"
-          style={{ color: "var(--fg-muted)" }}
-          onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.color = "var(--fg)")}
-          onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.color = "var(--fg-muted)")}
-        >
-          <svg width="14" height="10" viewBox="0 0 14 10" fill="none">
-            <path d="M13 5H1M1 5L5 1M1 5L5 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          Back to portfolio
-        </Link>
+        <BackButton label="Back to portfolio" onBack={() => router.back()} />
       </div>
 
       {/* Header */}
@@ -239,18 +247,7 @@ export default function HikeCinemaPage() {
       {/* Footer nav */}
       <div className="h-px mx-6 md:mx-12 lg:mx-20" style={{ background: "var(--border)" }} />
       <div className="px-6 md:px-12 lg:px-20 py-12 flex justify-between items-center">
-        <Link
-          href="/#work"
-          className="inline-flex items-center gap-2 font-mono text-xs tracking-widest uppercase transition-colors duration-200"
-          style={{ color: "var(--fg-muted)" }}
-          onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.color = "var(--fg)")}
-          onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.color = "var(--fg-muted)")}
-        >
-          <svg width="14" height="10" viewBox="0 0 14 10" fill="none">
-            <path d="M13 5H1M1 5L5 1M1 5L5 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          All work
-        </Link>
+        <BackButton label="All work" />
         <span
           className="font-mono text-xs tracking-widest uppercase"
           style={{ color: "var(--fg-tertiary)" }}
