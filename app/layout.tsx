@@ -27,7 +27,7 @@ const jetbrainsMono = JetBrains_Mono({
 const SITE_URL = "https://surya.in";
 const TITLE = "Surya Pratap Das — Software & DevOps Engineer";
 const DESCRIPTION =
-  "Software and DevOps engineer. Event-driven systems, AWS infrastructure at scale, production CI/CD. Most recently at Gravitones, scaling a live streaming platform to 60–70K concurrent users.";
+  "Software and DevOps engineer. Event-driven systems, AWS infrastructure at scale, production CI/CD. Most recently at Gravitones, building a live streaming platform that held 70K concurrent users in load testing.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -57,7 +57,7 @@ export const metadata: Metadata = {
     siteName: "Surya Pratap Das",
     title: TITLE,
     description:
-      "Scaled a live streaming platform to 60–70K concurrent users. Kafka event-driven middleware. AWS ECS, Terraform IaC, GitHub Actions.",
+      "Live streaming platform that held 70K concurrent users in load testing. Kafka event-driven middleware. AWS ECS, Terraform IaC, GitHub Actions.",
     locale: "en_IN",
     images: [
       {
@@ -127,8 +127,12 @@ export default function RootLayout({
       <head>
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD).replace(/</g, "\\u003c") }}
         />
+        {/* Without JS the intro animations never run: drop the loader, show the header */}
+        <noscript>
+          <style>{`.site-loader{display:none!important}.site-header{opacity:1!important;transform:none!important}`}</style>
+        </noscript>
       </head>
       <body className="antialiased overflow-x-hidden">
         <SmoothScroll>{children}</SmoothScroll>

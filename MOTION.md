@@ -65,41 +65,19 @@ viewport. A thin underline draws left-to-right immediately after.
 
 ---
 
-## Project card entrance (Framer Motion `useInView`)
+## Hover / focus states (CSS)
 
-| Property | Value |
-|----------|-------|
-| `initial` | `{ opacity: 0, y: 48 }` |
-| `animate` | `{ opacity: 1, y: 0 }` |
-| Duration | `0.7s` |
-| Ease | cubic `[0.16, 1, 0.3, 1]` (matches expo.out in Framer) |
-| Stagger | `i * 0.12s` |
-| Viewport margin | `-80px` |
+Hover effects are plain CSS in `globals.css` and also trigger on keyboard focus
+(`:focus-visible` / `:focus-within`): `.link-muted`, `.link-underline`,
+`.btn-accent`, and the `.proj-row` accent bar / tint / metric colour.
+Ease token: `--ease-out` = `cubic-bezier(0.16, 1, 0.3, 1)`.
 
 ---
 
-## Cursor (Framer Motion)
+## Cursor
 
-| State | Size | Background | Lerp factor |
-|-------|------|-----------|-------------|
-| Default | `8px` | `rgba(245,244,240,0.9)` | `0.18` |
-| Over interactive element | `40px` | `rgba(255,255,255,0.08)` + `1px` white border | `0.18` |
-
-Cursor is hidden on touch devices via `pointer: coarse` media query. The lerp
-is applied in a `requestAnimationFrame` loop — not a CSS transition — so it
-follows the damped behavior exactly.
-
----
-
-## Magnetic button (Framer Motion)
-
-Buttons with `data-magnetic` get a damped attraction on hover.
-
-| Property | Value |
-|----------|-------|
-| Max displacement | `±12px` on X, `±8px` on Y |
-| Lerp factor | `0.15` |
-| On mouse-leave | springs back with `power3.out`, `0.5s` |
+`10px` dot, lerp `0.85` in a `requestAnimationFrame` loop. Only on `pointer: fine`.
+The native cursor stays visible.
 
 ---
 
@@ -107,32 +85,23 @@ Buttons with `data-magnetic` get a damped attraction on hover.
 
 | Property | Value |
 |----------|-------|
-| Frames used | 80 (every other source frame: `frame_000`, `frame_002`… `frame_158`) |
-| Source total on disk | 160 frames @ 31MB — **needs recompression** |
-| **Production target** | ≤ 90 frames, ≤ 2MB total payload |
-| Drive mechanism | `useMotionValueEvent` on `scrollYProgress` from `useScroll` |
-| Render | `drawImage` to `<canvas>` with cover-fit crop |
-| Decode | Pre-load all frames on mount; frame 0 loads first to prevent blank canvas |
-
-⚠️  **Action required before shipping to production**: run the frames through a
-WebP re-encoder at lower quality (q55–65) and crop to 1280×720 or smaller.
-At current 31MB the LCP will fail on any throttled connection.
+| Frames | 80 in `public/hero/frame_00.webp` … `frame_79.webp`, 1166×656, ~2.4MB total |
+| Drive mechanism | GSAP `ScrollTrigger` on the 300vh hero section (`onUpdate` → frame index) |
+| Render | `drawImage` to `<canvas>` with cover-fit crop, DPR capped at 2 |
+| Loading | First 10 frames in order, rest in parallel; draws nearest loaded frame |
 
 ---
 
 ## `prefers-reduced-motion`
 
-All of the above is disabled when `prefers-reduced-motion: reduce` is set:
+Read live through `useReducedMotion()` (`lib/motion.ts`, SSR-safe via
+`useSyncExternalStore`), so changing the OS setting applies without reload.
 
-- Lenis is **not initialized** — native scroll is used.
-- GSAP ScrollTrigger animations are **not registered**.
-- Framer Motion `variants` reduce to instant opacity changes (no translate).
-- The image-sequence canvas is replaced with a static first frame.
-- Cursor animations are disabled (only the dot position follows the pointer).
-
-Implementation: the `SmoothScroll.tsx` wrapper reads the media query and opts out
-of Lenis. GSAP animations check a `prefersReducedMotion` guard before registering.
-Framer components use a `reduceMotion` context value from `ReducedMotionProvider`.
+- Lenis stays mounted but wheel smoothing is off; anchor jumps are immediate.
+- Section entrance animations are skipped (`revertOnUpdate` restores content).
+- The loader completes instantly; the hero copy is shown without the intro.
+- The stack marquee stops and wraps as a static list.
+- CSS animations/transitions are reduced to ~0ms.
 
 ---
 

@@ -4,7 +4,7 @@ import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { EASE, DUR, prefersReducedMotion } from "@/lib/motion";
+import { EASE, DUR, useReducedMotion } from "@/lib/motion";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -16,7 +16,7 @@ const EXPERIENCE = [
     location: "Bhubaneswar",
     bullets: [
       "Built live streaming platform for Hike — owned backend and full AWS infrastructure.",
-      "Scaled to 60–70K concurrent users in load testing via ECS auto-scaling, CDN, and multi-AZ.",
+      "Held 70K concurrent users in load testing via ECS auto-scaling, CDN, and multi-AZ.",
       "Replaced 5-container FFmpeg/HLS cluster with AWS Elemental MediaConvert.",
       "Integrated Widevine and FairPlay DRM end-to-end.",
       "First fully IaC project in the org — entire stack provisioned in Terraform.",
@@ -33,7 +33,7 @@ const EXPERIENCE = [
       "Kafka-based event-driven architecture with retry queues and dead-letter handling.",
       "LLM-assisted normalisation layer mapping 4 vendor payloads to one internal schema.",
       "Grafana + Prometheus + Loki observability; Razorpay, Stripe, and Resend integrations.",
-      "Elasticsearch migration cut p95 search latency 30–40%; Redis caching on hot paths.",
+      "Elasticsearch migration cut p95 search latency by up to 40%; Redis caching on hot paths.",
     ],
   },
 ];
@@ -47,7 +47,7 @@ const EDUCATION = {
 
 export default function Background() {
   const sectionRef = useRef<HTMLElement>(null);
-  const reduced = prefersReducedMotion();
+  const reduced = useReducedMotion();
 
   useGSAP(
     () => {
@@ -83,7 +83,7 @@ export default function Background() {
         scrollTrigger: { trigger: el.querySelector(".bg-education"), start: "top 84%" },
       });
     },
-    { scope: sectionRef }
+    { scope: sectionRef, dependencies: [reduced], revertOnUpdate: true }
   );
 
   return (

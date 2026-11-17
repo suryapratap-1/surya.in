@@ -4,7 +4,7 @@ import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { EASE, DUR, prefersReducedMotion } from "@/lib/motion";
+import { EASE, DUR, useReducedMotion } from "@/lib/motion";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -44,69 +44,66 @@ function MarqueeRow({
   duration,
 }: Readonly<{ items: string[]; direction: "left" | "right"; duration: number }>) {
   const trackRef = useRef<HTMLDivElement>(null);
-  const reduced = prefersReducedMotion();
+  const reduced = useReducedMotion();
 
   useGSAP(
     () => {
       if (reduced || !trackRef.current) return;
       const track = trackRef.current;
-      const halfW = track.scrollWidth / 2;
-
+      // The track holds two identical copies, so -50% is exactly one copy wide
+      // (stays correct after web fonts swap in or the viewport resizes).
       gsap.fromTo(
         track,
-        { x: direction === "left" ? 0 : -halfW },
+        { xPercent: direction === "left" ? 0 : -50 },
         {
-          x: direction === "left" ? -halfW : 0,
+          xPercent: direction === "left" ? -50 : 0,
           duration,
           ease: "none",
           repeat: -1,
+          scrollTrigger: { trigger: track, toggleActions: "play pause resume pause" },
         }
       );
     },
-    { scope: trackRef }
+    { scope: trackRef, dependencies: [reduced], revertOnUpdate: true }
   );
 
-  const doubled = [
-    ...items.map((item, idx) => ({ item, id: `a${idx}` })),
-    ...items.map((item, idx) => ({ item, id: `b${idx}` })),
-  ];
+  const copies = reduced ? [0] : [0, 1];
 
   return (
-    <div
-      className="marquee-outer"
-      style={{ borderBottom: "1px solid var(--border)" }}
-    >
-      <div ref={trackRef} className="marquee-track flex items-center">
-        {doubled.map(({ item, id }, i) => (
-          <span
-            key={id}
-            className="shrink-0"
-            style={{
-              fontSize: "clamp(2.5rem, 5vw, 7rem)",
-              fontFamily: "var(--font-display)",
-              fontWeight: 400,
-              color: id.startsWith("a") ? "var(--fg)" : "var(--fg-tertiary)",
-              letterSpacing: "-0.02em",
-              lineHeight: 1,
-              paddingTop: "clamp(1.5rem, 2.5vw, 2.5rem)",
-              paddingBottom: "clamp(1.5rem, 2.5vw, 2.5rem)",
-              paddingLeft: "clamp(1.5rem, 2.5vw, 2.5rem)",
-              paddingRight: "clamp(1.5rem, 2.5vw, 2.5rem)",
-            }}
-          >
-            {item}
-            <span
-              style={{
-                display: "inline-block",
-                marginLeft: "clamp(1rem, 2vw, 2rem)",
-                color: "var(--stroke)",
-                fontSize: "0.5em",
-                verticalAlign: "middle",
-              }}
-            >
-              ·
-            </span>
-          </span>
+    <div className="overflow-hidden" style={{ borderBottom: "1px solid var(--border)" }}>
+      <div ref={trackRef} className={reduced ? "" : "flex w-max items-center"}>
+        {copies.map((copy) => (
+          <ul key={copy} className={`flex items-center ${reduced ? "flex-wrap" : "shrink-0"}`} aria-hidden={copy === 1 ? true : undefined}>
+            {items.map((item, i) => (
+              <li
+                key={item}
+                className="shrink-0 whitespace-nowrap"
+                style={{
+                  fontSize: "clamp(2.5rem, 5vw, 7rem)",
+                  fontFamily: "var(--font-display)",
+                  fontWeight: 400,
+                  color: i % 2 === 0 ? "var(--fg)" : "var(--fg-tertiary)",
+                  letterSpacing: "-0.02em",
+                  lineHeight: 1,
+                  padding: "clamp(1.5rem, 2.5vw, 2.5rem)",
+                }}
+              >
+                {item}
+                <span
+                  aria-hidden="true"
+                  style={{
+                    display: "inline-block",
+                    marginLeft: "clamp(1rem, 2vw, 2rem)",
+                    color: "var(--fg-tertiary)",
+                    fontSize: "0.5em",
+                    verticalAlign: "middle",
+                  }}
+                >
+                  ·
+                </span>
+              </li>
+            ))}
+          </ul>
         ))}
       </div>
     </div>
@@ -115,7 +112,7 @@ function MarqueeRow({
 
 export default function Stack() {
   const sectionRef = useRef<HTMLElement>(null);
-  const reduced = prefersReducedMotion();
+  const reduced = useReducedMotion();
 
   useGSAP(
     () => {
@@ -131,7 +128,7 @@ export default function Stack() {
         scrollTrigger: { trigger: el.querySelector(".stack-label"), start: "top 85%" },
       });
     },
-    { scope: sectionRef }
+    { scope: sectionRef, dependencies: [reduced], revertOnUpdate: true }
   );
 
   return (

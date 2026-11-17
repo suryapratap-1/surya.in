@@ -5,27 +5,21 @@
   --bg:              #0a0a0c;
   --bg-elevated:     rgba(255, 255, 255, 0.04);
   --fg:              #f5f4f0;
-  --fg-muted:        rgba(245, 244, 240, 0.5);
-  --fg-secondary:    rgba(245, 244, 240, 0.7);
-  --fg-tertiary:     rgba(245, 244, 240, 0.4);
+  /* Text opacities chosen for WCAG AA on --bg: 0.75 ≈ 10:1, 0.62 ≈ 7:1, 0.52 ≈ 5.2:1 */
+  --fg-secondary:    rgba(245, 244, 240, 0.75);
+  --fg-muted:        rgba(245, 244, 240, 0.62);
+  --fg-tertiary:     rgba(245, 244, 240, 0.52);
   --accent-cyan:     #7dd3fc;
   --accent:          #7dd3fc;   /* alias for compat */
   --stroke:          rgba(255, 255, 255, 0.06);
   --border:          rgba(255, 255, 255, 0.06);
 
-  --glass-bg:        rgba(255, 255, 255, 0.04);
-  --glass-border:    rgba(255, 255, 255, 0.06);
-  --glass-blur:      16px;
+  --ease-out:        cubic-bezier(0.16, 1, 0.3, 1);
 
   --font-display:    var(--font-instrument);
   --font-sans:       var(--font-inter);
   --font-mono:       var(--font-jetbrains);
 
-  /* spacing tokens */
-  --space-section:   clamp(11.25rem, 20vw, 20rem);   /* 180–320px */
-  --space-card:      clamp(6.25rem, 12vw, 10rem);     /* 100–160px */
-  --space-label:     clamp(3rem, 6vw, 6rem);          /* 48–96px */
-  --space-quote:     clamp(12.5rem, 24vw, 22.5rem);   /* 200–360px */
 }
 
 @theme inline {
@@ -99,7 +93,7 @@ body::before {
   position: fixed;
   top: -40px;
   left: 16px;
-  z-index: 9999;
+  z-index: 10000; /* above the loader */
   padding: 8px 16px;
   background: var(--accent-cyan);
   color: #000;
@@ -117,16 +111,9 @@ body::before {
   outline-offset: 4px;
   border-radius: 2px;
 }
+/* Sections focused programmatically after in-page navigation */
+[tabindex="-1"]:focus { outline: none; }
 
-
-/* ── Hero letter-clip ────────────────────────────────────────────────── */
-.char-wrap {
-  display: inline-block;
-  overflow: hidden;
-  line-height: 1.05;
-  vertical-align: bottom;
-}
-.char { display: inline-block; }
 
 /* Hero stacked line wrap */
 .hero-line-wrap {
@@ -135,38 +122,109 @@ body::before {
   line-height: 0.92;
 }
 
-/* ── Section label underline ─────────────────────────────────────────── */
+/* Hero scroll cue */
+.scroll-cue { animation: scroll-cue 1.4s ease-in-out infinite; }
+@keyframes scroll-cue {
+  from { transform: translateY(-100%); }
+  to   { transform: translateY(200%); }
+}
+
+/* ── Section label underline (revealed by GSAP from scaleX 0) ────────── */
 .label-line {
   display: block;
   height: 1px;
   background: var(--stroke);
   transform-origin: left center;
-  transform: scaleX(0);
 }
 
-/* ── Glass panel ─────────────────────────────────────────────────────── */
-.glass {
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
+/* ── Links ───────────────────────────────────────────────────────────── */
+.link-muted {
+  color: var(--fg-muted);
+  transition: color 0.2s ease;
 }
+.link-muted:hover,
+.link-muted:focus-visible { color: var(--fg); }
 
-/* ── Atmospheric orb ─────────────────────────────────────────────────── */
-.orb {
+.link-underline::after {
+  content: "";
   position: absolute;
-  border-radius: 50%;
-  pointer-events: none;
-  filter: blur(80px);
-  opacity: 0.12;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: var(--accent-cyan);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.3s var(--ease-out);
+}
+.link-underline:hover::after,
+.link-underline:focus-visible::after { transform: scaleX(1); }
+
+/* Outlined accent button; set --row-accent (or --accent) on an ancestor */
+.btn-accent {
+  --btn: var(--row-accent, var(--accent));
+  color: var(--btn);
+  border: 1px solid color-mix(in srgb, var(--btn) 25%, transparent);
+  border-radius: 4px;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+.btn-accent:hover,
+.btn-accent:focus-visible {
+  background: color-mix(in srgb, var(--btn) 6%, transparent);
+  border-color: var(--btn);
 }
 
-/* ── Marquee ─────────────────────────────────────────────────────────── */
-.marquee-outer { overflow: hidden; }
-.marquee-track {
-  display: flex;
-  white-space: nowrap;
-  will-change: transform;
+/* ── Selected work rows: hover / keyboard focus ──────────────────────── */
+.proj-accent-bar {
+  background: var(--row-accent);
+  transform: scaleY(0);
+  transform-origin: top center;
+  opacity: 0;
+  transition: transform 0.4s var(--ease-out), opacity 0.4s var(--ease-out);
+}
+.proj-tint {
+  background: color-mix(in srgb, var(--row-accent) 2%, transparent);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+.proj-company { color: rgba(245, 244, 240, 0.9); transition: color 0.3s ease; }
+.proj-metric  { color: rgba(245, 244, 240, 0.4); transition: color 0.5s ease; } /* large text, 3.5:1 */
+.proj-link    { color: var(--fg-muted); transition: color 0.2s ease; }
+
+.proj-row:hover .proj-accent-bar,
+.proj-row:focus-within .proj-accent-bar { transform: scaleY(1); opacity: 1; }
+.proj-row:hover .proj-tint,
+.proj-row:focus-within .proj-tint { opacity: 1; }
+.proj-row:hover .proj-company,
+.proj-row:focus-within .proj-company { color: var(--fg); }
+.proj-row:hover .proj-metric,
+.proj-row:focus-within .proj-metric,
+.proj-row:hover .proj-link,
+.proj-row:focus-within .proj-link { color: var(--row-accent); }
+
+/* ── Navbar ──────────────────────────────────────────────────────────── */
+.burger-bar {
+  background: currentColor;
+  transition: transform 0.3s var(--ease-out), opacity 0.2s ease;
+}
+.mobile-menu {
+  background: rgba(13, 13, 16, 0.97);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  animation: fade-down 0.3s var(--ease-out);
+}
+.mobile-menu[hidden] { display: none; }
+.mobile-menu-link {
+  color: var(--fg);
+  font-family: var(--font-display);
+  animation: slide-in 0.5s var(--ease-out) both;
+}
+@keyframes fade-down {
+  from { opacity: 0; transform: translateY(-8px); }
+}
+@keyframes slide-in {
+  from { opacity: 0; transform: translateX(-20px); }
 }
 
 /* ── Reduced motion ──────────────────────────────────────────────────── */
@@ -177,8 +235,22 @@ body::before {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
-  [data-lenis-wrapper] {
-    overflow: auto !important;
-    height: auto !important;
+}
+
+/* ── Entrance / reveal (CSS only) ────────────────────────────────────── */
+.enter { animation: enter-up 0.7s var(--ease-out) both; }
+@keyframes enter-up {
+  from { opacity: 0; transform: translateY(24px); }
+}
+
+@supports (animation-timeline: view()) {
+  .reveal-on-view {
+    animation: enter-up linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 40%;
   }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .enter, .reveal-on-view, .scroll-cue { animation: none !important; }
 }

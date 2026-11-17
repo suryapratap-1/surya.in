@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useLenis } from "lenis/react";
-import { FRAMER_EASE } from "@/lib/motion";
+import { useReducedMotion } from "@/lib/motion";
 
 const NAV_LINKS = [
   { label: "Work", href: "#work" },
@@ -12,49 +12,73 @@ const NAV_LINKS = [
   { label: "Contact", href: "#contact" },
 ];
 
-export default function Navbar() {
+const easeInOutCubic = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+
+export default function Navbar({ ready = true }: Readonly<{ ready?: boolean }>) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const lenis = useLenis();
+  const reduced = useReducedMotion();
+  const toggleRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLElement>(null);
 
   const handleNav = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (!lenis) return; // fall back to the native anchor jump
     e.preventDefault();
     setMenuOpen(false);
-    lenis?.scrollTo(href, {
-      duration: 2.8,
-      easing: (t: number) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2,
-    });
+    lenis.scrollTo(href, reduced ? { immediate: true } : { duration: 1.6, easing: easeInOutCubic });
+    // Move focus to the target section for keyboard and screen-reader users
+    const target = document.querySelector<HTMLElement>(href);
+    target?.setAttribute("tabindex", "-1");
+    target?.focus({ preventScroll: true });
   };
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
+    onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Mobile menu: Esc closes, focus moves into the menu and back to the toggle.
+  useEffect(() => {
+    if (!menuOpen) return;
+    menuRef.current?.querySelector<HTMLElement>("a")?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setMenuOpen(false);
+        toggleRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [menuOpen]);
+
+  const visible = ready || reduced;
+
   return (
     <>
-      <motion.header
-        initial={{ opacity: 0, y: -16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, delay: 1.6, ease: FRAMER_EASE }}
-        className="fixed top-0 inset-x-0 z-50 flex items-center justify-between px-6 md:px-12 h-16"
+      <header
+        className="site-header fixed top-0 inset-x-0 z-50 flex items-center justify-between px-6 md:px-12 h-16"
         style={{
-          background: scrolled ? "rgba(13,13,16,0.8)" : "transparent",
-          backdropFilter: scrolled ? "blur(20px)" : "none",
-          WebkitBackdropFilter: scrolled ? "blur(20px)" : "none",
-          borderBottom: scrolled ? "1px solid var(--border)" : "none",
-          transition: "background 0.4s ease, border-color 0.4s ease",
+          opacity: visible ? 1 : 0,
+          transform: visible ? "none" : "translateY(-16px)",
+          background: scrolled || menuOpen ? "rgba(13,13,16,0.8)" : "transparent",
+          backdropFilter: scrolled || menuOpen ? "blur(20px)" : "none",
+          WebkitBackdropFilter: scrolled || menuOpen ? "blur(20px)" : "none",
+          borderBottom: `1px solid ${scrolled ? "var(--border)" : "transparent"}`,
+          transition:
+            "opacity 0.7s var(--ease-out), transform 0.7s var(--ease-out), background 0.4s ease, border-color 0.4s ease",
         }}
       >
-        <a
+        <Link
           href="/"
           className="font-mono text-xs tracking-widest uppercase"
           style={{ color: "var(--fg)" }}
           aria-label="Surya Pratap Das — home"
         >
           surya<span style={{ color: "var(--accent)" }}>.</span>in
-        </a>
+        </Link>
 
         <nav className="hidden md:flex items-center gap-8" aria-label="Primary navigation">
           {NAV_LINKS.map((link) => (
@@ -62,14 +86,7 @@ export default function Navbar() {
               key={link.label}
               href={link.href}
               onClick={(e) => handleNav(e, link.href)}
-              className="font-mono text-xs tracking-widest uppercase transition-colors duration-200"
-              style={{ color: "var(--fg-muted)" }}
-              onMouseEnter={(e) =>
-                ((e.target as HTMLElement).style.color = "var(--fg)")
-              }
-              onMouseLeave={(e) =>
-                ((e.target as HTMLElement).style.color = "var(--fg-muted)")
-              }
+              className="link-muted font-mono text-xs tracking-widest uppercase"
             >
               {link.label}
             </a>
@@ -77,67 +94,45 @@ export default function Navbar() {
         </nav>
 
         <button
+          ref={toggleRef}
           onClick={() => setMenuOpen((v) => !v)}
-          className="md:hidden flex flex-col gap-1.5 p-1"
-          aria-label="Toggle menu"
+          className="md:hidden flex flex-col gap-1.5 p-2 -mr-2"
+          aria-label={menuOpen ? "Close menu" : "Open menu"}
           aria-expanded={menuOpen}
+          aria-controls="mobile-menu"
           style={{ color: "var(--fg)" }}
         >
-          <motion.span
-            animate={menuOpen ? { rotate: 45, y: 8 } : { rotate: 0, y: 0 }}
-            transition={{ duration: 0.3, ease: FRAMER_EASE }}
-            className="block w-5 h-px origin-center"
-            style={{ background: "currentColor" }}
+          <span
+            className="burger-bar block w-5 h-px"
+            style={{ transform: menuOpen ? "translateY(7px) rotate(45deg)" : "none" }}
           />
-          <motion.span
-            animate={menuOpen ? { opacity: 0 } : { opacity: 1 }}
-            transition={{ duration: 0.2 }}
-            className="block w-5 h-px"
-            style={{ background: "currentColor" }}
-          />
-          <motion.span
-            animate={menuOpen ? { rotate: -45, y: -8 } : { rotate: 0, y: 0 }}
-            transition={{ duration: 0.3, ease: FRAMER_EASE }}
-            className="block w-5 h-px origin-center"
-            style={{ background: "currentColor" }}
+          <span className="burger-bar block w-5 h-px" style={{ opacity: menuOpen ? 0 : 1 }} />
+          <span
+            className="burger-bar block w-5 h-px"
+            style={{ transform: menuOpen ? "translateY(-7px) rotate(-45deg)" : "none" }}
           />
         </button>
-      </motion.header>
+      </header>
 
-      <AnimatePresence>
-        {menuOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.3, ease: FRAMER_EASE }}
-            className="fixed inset-x-0 top-16 z-40 flex flex-col gap-6 px-8 py-10"
-            style={{
-              background: "rgba(13,13,16,0.97)",
-              backdropFilter: "blur(20px)",
-              WebkitBackdropFilter: "blur(20px)",
-              borderBottom: "1px solid var(--border)",
-            }}
-            role="navigation"
-            aria-label="Mobile navigation"
+      <nav
+        ref={menuRef}
+        id="mobile-menu"
+        aria-label="Mobile navigation"
+        hidden={!menuOpen}
+        className="mobile-menu fixed inset-x-0 top-16 z-40 flex flex-col gap-6 px-8 py-10 md:hidden"
+      >
+        {NAV_LINKS.map((link, i) => (
+          <a
+            key={link.label}
+            href={link.href}
+            onClick={(e) => handleNav(e, link.href)}
+            className="mobile-menu-link text-2xl"
+            style={{ animationDelay: `${i * 70}ms` }}
           >
-            {NAV_LINKS.map((link, i) => (
-              <motion.a
-                key={link.label}
-                href={link.href}
-                onClick={(e) => handleNav(e, link.href)}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.07, ease: FRAMER_EASE }}
-                className="text-2xl font-semibold"
-                style={{ color: "var(--fg)", fontFamily: "var(--font-display)" }}
-              >
-                {link.label}
-              </motion.a>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
+            {link.label}
+          </a>
+        ))}
+      </nav>
     </>
   );
 }

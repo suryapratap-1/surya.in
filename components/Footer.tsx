@@ -1,5 +1,3 @@
-"use client";
-
 const SOCIALS = [
   { label: "GitHub", href: "https://github.com/suryapratap-1" },
   { label: "LinkedIn", href: "https://linkedin.com/in/suryapratapdas" },
@@ -7,7 +5,7 @@ const SOCIALS = [
   { label: "Email", href: "mailto:dev.suryapratap65@gmail.com" },
 ];
 
-const TOOLS = ["Next.js", "GSAP", "Lenis", "Tailwind", "Framer Motion", "Vercel"];
+const TOOLS = ["Next.js", "GSAP", "Lenis", "Tailwind", "Vercel"];
 
 export default function Footer() {
   return (
@@ -24,25 +22,18 @@ export default function Footer() {
             Surya Pratap Das
           </p>
           <p className="font-mono text-xs" style={{ color: "var(--fg-muted)" }}>
-            © {new Date().getFullYear()} — Backend & DevOps Engineer
+            © {new Date().getFullYear()} — Software & DevOps Engineer
           </p>
         </div>
 
-        <nav aria-label="Footer navigation" className="flex items-center gap-6">
+        <nav aria-label="Footer navigation" className="flex flex-wrap items-center gap-x-6 gap-y-3">
           {SOCIALS.map((s) => (
             <a
               key={s.label}
               href={s.href}
               target={s.label === "Email" ? undefined : "_blank"}
-              rel="noopener noreferrer"
-              className="font-mono text-xs tracking-widest uppercase transition-colors duration-200"
-              style={{ color: "var(--fg-muted)" }}
-              onMouseEnter={(e) =>
-                ((e.target as HTMLElement).style.color = "var(--fg)")
-              }
-              onMouseLeave={(e) =>
-                ((e.target as HTMLElement).style.color = "var(--fg-muted)")
-              }
+              rel={s.label === "Email" ? undefined : "noopener noreferrer"}
+              className="link-muted font-mono text-xs tracking-widest uppercase"
             >
               {s.label}
             </a>

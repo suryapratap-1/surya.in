@@ -79,6 +79,8 @@ export default function Loader({ onComplete }: Readonly<{ onComplete: () => void
     // Hold at full progress
     tl.to({}, { duration: 0.15 });
 
+    tl.addLabel("exit");
+
     // Slide the whole overlay up — reveals the page below
     tl.to(overlay, {
       yPercent: -100,
@@ -93,7 +95,16 @@ export default function Loader({ onComplete }: Readonly<{ onComplete: () => void
       },
     });
 
+    // Any key, click or tap skips straight to the exit slide
+    const skip = () => {
+      if (tl.time() < tl.labels.exit) tl.seek("exit");
+    };
+    window.addEventListener("keydown", skip);
+    window.addEventListener("pointerdown", skip);
+
     return () => {
+      window.removeEventListener("keydown", skip);
+      window.removeEventListener("pointerdown", skip);
       tl.kill();
       document.documentElement.style.overflow = "";
       if (greetingInterval !== null) {
@@ -105,6 +116,7 @@ export default function Loader({ onComplete }: Readonly<{ onComplete: () => void
   return (
     <div
       ref={overlayRef}
+      className="site-loader"
       aria-hidden="true"
       style={{
         position: "fixed",

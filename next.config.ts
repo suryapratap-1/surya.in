@@ -7,8 +7,8 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        // Frame sequence — content-addressed filenames, safe to cache forever
-        source: "/sequence/:path*",
+        // Hero frames — rename files (or the folder) when they change; cached forever
+        source: "/hero/:path*",
         headers: [
           {
             key: "Cache-Control",

@@ -1,4 +1,4 @@
-import gsap from "gsap";
+import { useSyncExternalStore } from "react";
 
 export const EASE = {
   entrance: "power3.out",
@@ -12,27 +12,26 @@ export const DUR = {
   slow: 1.2,
 } as const;
 
-export const SCRUB = {
-  hero: 1.5,
-  content: 1,
-} as const;
+/** CSS equivalent of the expo-style ease used across the site. */
+export const CSS_EASE = "cubic-bezier(0.16, 1, 0.3, 1)";
 
-export const CURSOR_LERP = 0.18;
-export const MAGNET_LERP = 0.15;
-
-export const FRAMER_EASE = [0.16, 1, 0.3, 1] as const;
+const REDUCED_QUERY = "(prefers-reduced-motion: reduce)";
 
 export function prefersReducedMotion(): boolean {
   if (typeof window === "undefined") return false;
-  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  return window.matchMedia(REDUCED_QUERY).matches;
 }
 
-export function safeGsap<T>(fn: () => T): T | undefined {
-  if (prefersReducedMotion()) return undefined;
-  return fn();
+function subscribeReduced(onChange: () => void) {
+  const mq = window.matchMedia(REDUCED_QUERY);
+  mq.addEventListener("change", onChange);
+  return () => mq.removeEventListener("change", onChange);
 }
 
-export function registerGSAPPlugins() {
-  const { ScrollTrigger } = require("gsap/ScrollTrigger");
-  gsap.registerPlugin(ScrollTrigger);
+/**
+ * Live, SSR-safe reduced-motion flag. Server snapshot is `false`, so hydration
+ * matches; the client re-renders if the user preference is (or becomes) set.
+ */
+export function useReducedMotion(): boolean {
+  return useSyncExternalStore(subscribeReduced, prefersReducedMotion, () => false);
 }

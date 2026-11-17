@@ -1,25 +1,18 @@
 "use client";
 
-import { useEffect, useRef, useCallback } from "react";
-import { useMotionValueEvent, MotionValue } from "framer-motion";
+import { useEffect, useRef, type RefObject } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-// Use every other source frame to stay closer to the 90-frame target.
-// Source frames: frame_000, frame_002, … frame_158 → 80 frames total.
-// ⚠️  Production: recompress source WebPs to q55–65 @ 1280×720 to reach <2MB.
+gsap.registerPlugin(ScrollTrigger);
+
+// 80 frames, 1166×656 WebP (~30 KB each, ~2.4 MB total).
 const TOTAL_FRAMES = 80;
-const PRIORITY_FRAMES = 10; // load these first before the batch
+const PRIORITY_FRAMES = 10; // loaded first, in order, before the rest in parallel
 
-const FRAME_PATH = (i: number) => {
-  const source = i * 2;
-  return `/sequence/frame_${String(source).padStart(3, "0")}_delay-0.05s.webp`;
-};
+const FRAME_PATH = (i: number) => `/hero/frame_${String(i).padStart(2, "0")}.webp`;
 
-function drawCoverFrame(
-  ctx: CanvasRenderingContext2D,
-  img: HTMLImageElement,
-  canvasW: number,
-  canvasH: number
-) {
+function drawCoverFrame(ctx: CanvasRenderingContext2D, img: HTMLImageElement, canvasW: number, canvasH: number) {
   const imgAspect = img.naturalWidth / img.naturalHeight;
   const canvasAspect = canvasW / canvasH;
 
@@ -34,110 +27,87 @@ function drawCoverFrame(
   ctx.drawImage(img, sx, sy, sw, sh, 0, 0, canvasW, canvasH);
 }
 
-export default function ScrollyCanvas({
-  scrollYProgress,
-}: Readonly<{
-  scrollYProgress: MotionValue<number>;
-}>) {
+export default function ScrollyCanvas({ triggerRef }: Readonly<{ triggerRef: RefObject<HTMLElement | null> }>) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const framesRef = useRef<(HTMLImageElement | null)[]>(
-    new Array(TOTAL_FRAMES).fill(null)
-  );
-  const currentFrameRef = useRef(0);
-  const rafRef = useRef<number | null>(null);
-  // CSS logical size — updated on resize, used for cover math
-  const cssSizeRef = useRef({ w: 0, h: 0 });
 
-  const renderFrame = useCallback((index: number) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    const img = framesRef.current[index];
-    if (!img?.complete || img.naturalWidth === 0) return;
-    const { w, h } = cssSizeRef.current;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawCoverFrame(ctx, img, w, h);
-  }, []);
-
-  // Load first PRIORITY_FRAMES sequentially, then fire the rest in parallel
   useEffect(() => {
+    const canvas = canvasRef.current;
+    const trigger = triggerRef.current;
+    const ctx = canvas?.getContext("2d");
+    if (!canvas || !trigger || !ctx) return;
+
+    const frames: (HTMLImageElement | null)[] = new Array(TOTAL_FRAMES).fill(null);
+    const loaded: boolean[] = new Array(TOTAL_FRAMES).fill(false);
+    let cssW = 0;
+    let cssH = 0;
+    let current = 0;
+    let rafId = 0;
     let cancelled = false;
 
-    const loadRest = () => {
-      for (let i = PRIORITY_FRAMES; i < TOTAL_FRAMES; i++) {
-        if (framesRef.current[i]) continue;
+    // Draw the requested frame, or the nearest earlier one already loaded.
+    const render = (index: number) => {
+      for (let i = index; i >= 0; i--) {
+        const img = frames[i];
+        if (loaded[i] && img) {
+          ctx.clearRect(0, 0, cssW, cssH);
+          drawCoverFrame(ctx, img, cssW, cssH);
+          return;
+        }
+      }
+    };
+
+    const load = (i: number) =>
+      new Promise<void>((resolve) => {
         const img = new Image();
-        img.src = FRAME_PATH(i);
+        img.decoding = "async";
         img.onload = () => {
-          if (cancelled) return;
-          framesRef.current[i] = img;
+          if (cancelled) return resolve();
+          loaded[i] = true;
+          if (i === current || i === 0) render(current);
+          resolve();
         };
-        framesRef.current[i] = img; // placeholder so we don't double-load
-      }
-    };
+        img.onerror = () => resolve();
+        img.src = FRAME_PATH(i);
+        frames[i] = img;
+      });
 
-    const loadPriority = async () => {
-      for (let i = 0; i < PRIORITY_FRAMES; i++) {
-        if (cancelled) return;
-        await new Promise<void>((resolve) => {
-          const img = new Image();
-          img.src = FRAME_PATH(i);
-          img.onload = () => {
-            if (!cancelled) {
-              framesRef.current[i] = img;
-              if (i === 0) renderFrame(0);
-            }
-            resolve();
-          };
-          img.onerror = () => resolve();
-        });
-      }
-      if (!cancelled) loadRest();
-    };
-
-    loadPriority();
-    return () => { cancelled = true; };
-  }, [renderFrame]);
-
-  // Canvas resize — accounts for devicePixelRatio
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+    (async () => {
+      for (let i = 0; i < PRIORITY_FRAMES && !cancelled; i++) await load(i);
+      for (let i = PRIORITY_FRAMES; i < TOTAL_FRAMES && !cancelled; i++) void load(i);
+    })();
 
     const resize = () => {
-      const dpr = window.devicePixelRatio || 1;
-      const w = window.innerWidth;
-      const h = window.innerHeight;
-      cssSizeRef.current = { w, h };
-      canvas.width = w * dpr;
-      canvas.height = h * dpr;
-      const ctx = canvas.getContext("2d");
-      if (ctx) ctx.scale(dpr, dpr);
-      renderFrame(currentFrameRef.current);
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      cssW = window.innerWidth;
+      cssH = window.innerHeight;
+      canvas.width = Math.round(cssW * dpr);
+      canvas.height = Math.round(cssH * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      render(current);
     };
-
     resize();
     window.addEventListener("resize", resize);
-    return () => window.removeEventListener("resize", resize);
-  }, [renderFrame]);
 
-  useMotionValueEvent(scrollYProgress, "change", (progress) => {
-    const frameIndex = Math.max(
-      0,
-      Math.min(TOTAL_FRAMES - 1, Math.round(progress * (TOTAL_FRAMES - 1)))
-    );
-    if (frameIndex === currentFrameRef.current) return;
-    currentFrameRef.current = frameIndex;
-    if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    rafRef.current = requestAnimationFrame(() => renderFrame(frameIndex));
-  });
+    const st = ScrollTrigger.create({
+      trigger,
+      start: "top top",
+      end: "bottom bottom",
+      onUpdate: (self) => {
+        const index = Math.min(TOTAL_FRAMES - 1, Math.max(0, Math.round(self.progress * (TOTAL_FRAMES - 1))));
+        if (index === current) return;
+        current = index;
+        cancelAnimationFrame(rafId);
+        rafId = requestAnimationFrame(() => render(index));
+      },
+    });
 
-  return (
-    <canvas
-      ref={canvasRef}
-      className="absolute inset-0 w-full h-full"
-      style={{ display: "block", willChange: "transform" }}
-    />
-  );
+    return () => {
+      cancelled = true;
+      st.kill();
+      cancelAnimationFrame(rafId);
+      window.removeEventListener("resize", resize);
+    };
+  }, [triggerRef]);
+
+  return <canvas ref={canvasRef} aria-hidden="true" className="absolute inset-0 w-full h-full block" />;
 }

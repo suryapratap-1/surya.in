@@ -4,7 +4,7 @@ import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { prefersReducedMotion, EASE, DUR } from "@/lib/motion";
+import { useReducedMotion, EASE, DUR } from "@/lib/motion";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -12,7 +12,7 @@ const STATS = [
   { suffix: "K", countTo: 70, label: "concurrent users\nin load testing" },
   { suffix: "", countTo: 6, label: "services on one\nCI/CD standard" },
   { suffix: "", countTo: 4, label: "vendor payloads\nnormalised by LLM" },
-  { suffix: "%", countTo: 40, label: "p95 search latency\nreduction" },
+  { suffix: "%", countTo: 40, label: "p95 search latency\nreduction, best case" },
 ];
 
 const HEADLINE = [
@@ -24,7 +24,7 @@ const HEADLINE = [
 
 export default function WhatIBuild() {
   const sectionRef = useRef<HTMLElement>(null);
-  const reduced = prefersReducedMotion();
+  const reduced = useReducedMotion();
 
   useGSAP(
     () => {
@@ -32,10 +32,10 @@ export default function WhatIBuild() {
       const el = sectionRef.current;
 
       if (reduced) {
-        gsap.set(
-          el.querySelectorAll(".wib-label-text, .wib-headline-line, .wib-para, .wib-stat"),
-          { opacity: 1, x: 0, y: 0 }
-        );
+        // Content is fully visible in the markup; make sure counters show final values
+        el.querySelectorAll<HTMLElement>(".wib-stat-num").forEach((n, i) => {
+          n.textContent = STATS[i].countTo + STATS[i].suffix;
+        });
         return;
       }
 
@@ -62,6 +62,8 @@ export default function WhatIBuild() {
         const numEl = statEl.querySelector<HTMLSpanElement>(".wib-stat-num");
         const { countTo, suffix } = STATS[i];
         const obj = { count: 0 };
+        // Markup holds the real value (SSR / no-JS); reset only when animating
+        if (numEl) numEl.textContent = "0" + suffix;
 
         gsap.to(obj, {
           count: countTo,
@@ -79,7 +81,7 @@ export default function WhatIBuild() {
         });
       });
     },
-    { scope: sectionRef }
+    { scope: sectionRef, dependencies: [reduced], revertOnUpdate: true }
   );
 
   return (
@@ -136,7 +138,7 @@ export default function WhatIBuild() {
               style={{ color: "var(--fg-secondary)" }}
             >
               I work on the backend systems that move data reliably under pressure —
-              message queues, retry logic, dead-letter handling. Systems that don't
+              message queues, retry logic, dead-letter handling. Systems that don’t
               fall apart at 3am.
             </p>
             <p
@@ -151,7 +153,7 @@ export default function WhatIBuild() {
               className="wib-para text-base md:text-lg leading-relaxed font-light"
               style={{ color: "var(--fg-secondary)" }}
             >
-              I won't ship something that only demos well. Every service I own has
+              I won’t ship something that only demos well. Every service I own has
               real observability — Grafana, Prometheus, Loki — before it goes
               to production.
             </p>
@@ -167,7 +169,7 @@ export default function WhatIBuild() {
             gap: "1px",
           }}
         >
-          {STATS.map((stat, i) => (
+          {STATS.map((stat) => (
             <div
               key={stat.label}
               className="wib-stat flex flex-col gap-4 py-14 md:py-20 px-6 md:px-8 lg:px-10"
@@ -183,7 +185,7 @@ export default function WhatIBuild() {
                   letterSpacing: "-0.03em",
                 }}
               >
-                {"0" + stat.suffix}
+                {stat.countTo + stat.suffix}
               </span>
               <span
                 className="wib-stat-label font-mono text-xs leading-relaxed"

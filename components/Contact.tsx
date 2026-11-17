@@ -1,11 +1,10 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { motion } from "framer-motion";
-import { EASE, DUR, FRAMER_EASE, prefersReducedMotion } from "@/lib/motion";
+import { EASE, DUR, useReducedMotion } from "@/lib/motion";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -18,7 +17,7 @@ const LINKS = [
 
 export default function Contact() {
   const sectionRef = useRef<HTMLElement>(null);
-  const reduced = prefersReducedMotion();
+  const reduced = useReducedMotion();
 
   useGSAP(
     () => {
@@ -47,7 +46,7 @@ export default function Contact() {
         opacity: 0, y: 12, duration: 0.6, ease: EASE.entrance,
       }, "-=0.4");
     },
-    { scope: sectionRef }
+    { scope: sectionRef, dependencies: [reduced], revertOnUpdate: true }
   );
 
   return (
@@ -89,7 +88,7 @@ export default function Contact() {
               maxWidth: "20ch",
             }}
           >
-            Let's build something that holds.
+            Let’s build something that holds.
           </h2>
 
           {/* Links row */}
@@ -112,7 +111,7 @@ export default function Contact() {
               className="font-mono text-xs tracking-wide"
               style={{ color: "var(--fg-muted)" }}
             >
-              Actively interviewing · Available from June 2026 · Bangalore / Gurugram / Remote · Freelance welcome
+              Actively interviewing · Bangalore / Gurugram / Remote · Freelance welcome
             </p>
           </div>
         </div>
@@ -126,26 +125,15 @@ function ContactLink({
   href,
   external,
 }: Readonly<{ label: string; href: string; external: boolean }>) {
-  const [hovered, setHovered] = useState(false);
-
   return (
     <a
       href={href}
       target={external ? "_blank" : undefined}
       rel={external ? "noopener noreferrer" : undefined}
-      className="ct-link group relative font-mono text-xs tracking-[0.3em] uppercase pb-1"
-      style={{ color: hovered ? "var(--fg)" : "var(--fg-muted)", transition: "color 0.2s ease" }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      className="ct-link link-underline link-muted relative font-mono text-xs tracking-[0.3em] uppercase pb-1"
     >
       {label}
-      <motion.span
-        className="absolute bottom-0 left-0 right-0 h-px"
-        animate={{ scaleX: hovered ? 1 : 0 }}
-        initial={{ scaleX: 0 }}
-        transition={{ duration: 0.3, ease: FRAMER_EASE }}
-        style={{ background: "var(--accent-cyan)", transformOrigin: "left center" }}
-      />
+      {external && <span className="sr-only"> (opens in a new tab)</span>}
     </a>
   );
 }

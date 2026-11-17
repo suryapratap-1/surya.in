@@ -4,13 +4,13 @@ import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { EASE, DUR, prefersReducedMotion } from "@/lib/motion";
+import { EASE, DUR, useReducedMotion } from "@/lib/motion";
 
 gsap.registerPlugin(ScrollTrigger);
 
 export default function PullQuote() {
   const quoteRef = useRef<HTMLElement>(null);
-  const reduced = prefersReducedMotion();
+  const reduced = useReducedMotion();
 
   useGSAP(
     () => {
@@ -31,7 +31,7 @@ export default function PullQuote() {
         opacity: 0, y: 12, duration: DUR.base, ease: EASE.entrance,
       }, "-=0.6");
     },
-    { scope: quoteRef }
+    { scope: quoteRef, dependencies: [reduced], revertOnUpdate: true }
   );
 
   return (
@@ -55,6 +55,7 @@ export default function PullQuote() {
           }}
         />
 
+        <figure className="flex flex-col items-center">
         <blockquote
           className="pq-text"
           style={{
@@ -68,15 +69,16 @@ export default function PullQuote() {
             maxWidth: "22ch",
           }}
         >
-          "I'd rather ship a system that holds at 3am than one that demos well at 3pm."
+          <p>“I’d rather ship a system that holds at 3am than one that demos well at 3pm.”</p>
         </blockquote>
 
-        <p
+        <figcaption
           className="pq-attr font-mono text-xs tracking-[0.3em] uppercase mt-10"
           style={{ color: "var(--fg-tertiary)" }}
         >
           Surya Pratap Das
-        </p>
+        </figcaption>
+        </figure>
       </div>
     </section>
   );

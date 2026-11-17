@@ -1,9 +1,7 @@
-"use client";
+import HomeClient from "@/components/HomeClient";
 
-import dynamic from "next/dynamic";
-
-const HomeClient = dynamic(() => import("@/components/HomeClient"), { ssr: false });
-
+// Rendered on the server so the full page content is in the initial HTML
+// (crawlers, link previews, no blank screen while JS loads).
 export default function HomeWrapper() {
   return <HomeClient />;
 }

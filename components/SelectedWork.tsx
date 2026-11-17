@@ -1,12 +1,11 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import Link from "next/link";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { motion } from "framer-motion";
-import { EASE, DUR, FRAMER_EASE, prefersReducedMotion } from "@/lib/motion";
+import { EASE, DUR, useReducedMotion } from "@/lib/motion";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -68,10 +67,10 @@ const PROJECTS: Project[] = [
     year: "Apr 2024 — Nov 2025",
     role: "Full Stack",
     metric: "40%",
-    metricLabel: "reduction in\nsearch latency",
+    metricLabel: "lower p95 search\nlatency, best case",
     outcome: "Search and GDS integrations — travel platform",
     description:
-      "Shipped full-stack features across an online travel agency platform, integrating Amadeus GDS for flight and hotel inventory and Wincloud PMS for property management. Migrated property search from a relational query to Elasticsearch — cutting p95 latency by 30–40% in benchmarks. Applied Redis caching on the hot read paths (listings, property details, bookings) to remove database pressure at peak.",
+      "Shipped full-stack features across an online travel agency platform, integrating Amadeus GDS for flight and hotel inventory and Wincloud PMS for property management. Migrated property search from a relational query to Elasticsearch — cutting p95 latency by up to 40% in benchmarks. Applied Redis caching on the hot read paths (listings, property details, bookings) to remove database pressure at peak.",
     stack: ["Node.js", "Elasticsearch", "Redis", "Angular", "PostgreSQL", "Amadeus GDS", "Wincloud PMS"],
     accent: "#a78bfa",
     reversed: false,
@@ -81,8 +80,7 @@ const PROJECTS: Project[] = [
 
 function ProjectRow({ project }: Readonly<{ project: Project }>) {
   const rowRef = useRef<HTMLElement>(null);
-  const [hovered, setHovered] = useState(false);
-  const reduced = prefersReducedMotion();
+  const reduced = useReducedMotion();
 
   useGSAP(
     () => {
@@ -106,7 +104,7 @@ function ProjectRow({ project }: Readonly<{ project: Project }>) {
         opacity: 0, x: project.reversed ? -32 : 32, duration: DUR.slow, ease: EASE.hero,
       }, "<");
     },
-    { scope: rowRef }
+    { scope: rowRef, dependencies: [reduced], revertOnUpdate: true }
   );
 
   const contentCol = `lg:col-span-7 flex flex-col gap-6 ${project.reversed ? "lg:order-2" : ""} ${project.deepIndent ? "lg:pl-[8%]" : ""}`;
@@ -115,9 +113,8 @@ function ProjectRow({ project }: Readonly<{ project: Project }>) {
   return (
     <article
       ref={rowRef}
-      className="relative"
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      className="proj-row relative"
+      style={{ "--row-accent": project.accent } as React.CSSProperties}
     >
       {/* Background numeral */}
       <div
@@ -133,33 +130,19 @@ function ProjectRow({ project }: Readonly<{ project: Project }>) {
           [project.reversed ? "left" : "right"]: "3%",
           top: "50%",
           transform: "translateY(-50%)",
-          userSelect: "none",
         }}
       >
         {project.index}
       </div>
 
-      {/* Accent left border */}
-      <motion.div
-        className="absolute left-0 top-0 bottom-0 w-px"
-        animate={{ scaleY: hovered ? 1 : 0, opacity: hovered ? 1 : 0 }}
-        transition={{ duration: 0.4, ease: FRAMER_EASE }}
-        style={{ background: project.accent, transformOrigin: "top center" }}
-      />
-
-      {/* Hover tint */}
-      <motion.div
-        className="absolute inset-0 pointer-events-none"
-        animate={{ opacity: hovered ? 1 : 0 }}
-        transition={{ duration: 0.5 }}
-        style={{ background: `${project.accent}05` }}
-      />
+      {/* Accent left border + hover tint (CSS: hover / focus-within) */}
+      <div className="proj-accent-bar absolute left-0 top-0 bottom-0 w-px" aria-hidden="true" />
+      <div className="proj-tint absolute inset-0 pointer-events-none" aria-hidden="true" />
 
       <div className="relative grid grid-cols-1 lg:grid-cols-12 gap-y-8 lg:gap-x-12 px-6 md:px-12 lg:px-16 py-16 md:py-24">
 
         {/* Content column */}
         <div className={contentCol}>
-          {/* Verb chip */}
           <span
             className="proj-verb font-mono text-xs tracking-[0.3em] uppercase"
             style={{ color: project.accent }}
@@ -167,7 +150,6 @@ function ProjectRow({ project }: Readonly<{ project: Project }>) {
             {project.verb}&nbsp;&nbsp;·&nbsp;&nbsp;{project.role}&nbsp;&nbsp;·&nbsp;&nbsp;{project.year}
           </span>
 
-          {/* Company name */}
           <h3
             className="proj-company leading-none tracking-tight"
             style={{
@@ -175,33 +157,21 @@ function ProjectRow({ project }: Readonly<{ project: Project }>) {
               fontFamily: "var(--font-display)",
               fontWeight: 400,
               letterSpacing: "-0.02em",
-              color: hovered ? "var(--fg)" : "rgba(245,244,240,0.9)",
-              transition: "color 0.3s ease",
             }}
           >
             {project.company}
           </h3>
 
-          {/* Body */}
           <div className="proj-body flex flex-col gap-5">
-            <p
-              className="font-mono text-xs tracking-wide"
-              style={{ color: project.accent }}
-            >
+            <p className="font-mono text-xs tracking-wide" style={{ color: project.accent }}>
               → {project.outcome}
             </p>
 
-            <p
-              className="text-sm md:text-base leading-relaxed max-w-2xl"
-              style={{ color: "var(--fg-muted)" }}
-            >
+            <p className="text-sm md:text-base leading-relaxed max-w-2xl" style={{ color: "var(--fg-muted)" }}>
               {project.description}
             </p>
 
-            <p
-              className="font-mono text-xs leading-relaxed"
-              style={{ color: "var(--fg-tertiary)" }}
-            >
+            <p className="font-mono text-xs leading-relaxed" style={{ color: "var(--fg-tertiary)" }}>
               {project.stack.join("  ·  ")}
             </p>
 
@@ -210,13 +180,11 @@ function ProjectRow({ project }: Readonly<{ project: Project }>) {
                 href={project.github}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 font-mono text-xs tracking-widest uppercase transition-colors duration-200 self-start"
-                style={{ color: hovered ? project.accent : "var(--fg-muted)" }}
+                className="proj-link inline-flex items-center gap-2 font-mono text-xs tracking-widest uppercase self-start"
               >
                 View on GitHub
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                  <path d="M1 9L9 1M9 1H3M9 1v6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+                <span className="sr-only"> (opens in a new tab)</span>
+                <ArrowIcon />
               </a>
             )}
           </div>
@@ -231,16 +199,11 @@ function ProjectRow({ project }: Readonly<{ project: Project }>) {
               fontFamily: "var(--font-display)",
               fontWeight: 400,
               letterSpacing: "-0.03em",
-              color: hovered ? project.accent : "rgba(245,244,240,0.2)",
-              transition: "color 0.5s ease",
             }}
           >
             {project.metric}
           </p>
-          <p
-            className="font-mono text-xs leading-relaxed"
-            style={{ color: "var(--fg-muted)", whiteSpace: "pre-line" }}
-          >
+          <p className="font-mono text-xs leading-relaxed" style={{ color: "var(--fg-muted)", whiteSpace: "pre-line" }}>
             {project.metricLabel}
           </p>
         </div>
@@ -248,46 +211,34 @@ function ProjectRow({ project }: Readonly<{ project: Project }>) {
 
       {/* CTA */}
       {project.screenshotsHref && (
-        <div className="px-6 md:px-12 lg:px-16 pb-14">
+        <div className="relative px-6 md:px-12 lg:px-16 pb-14">
           <Link
             href={project.screenshotsHref}
-            className="inline-flex items-center gap-3 font-mono text-xs tracking-widest uppercase px-5 py-3 transition-colors duration-200"
-            style={{
-              color: project.accent,
-              border: `1px solid ${project.accent}40`,
-              borderRadius: "4px",
-            }}
-            onMouseEnter={(e) => {
-              const el = e.currentTarget as HTMLElement;
-              el.style.background = `${project.accent}10`;
-              el.style.borderColor = project.accent;
-            }}
-            onMouseLeave={(e) => {
-              const el = e.currentTarget as HTMLElement;
-              el.style.background = "transparent";
-              el.style.borderColor = `${project.accent}40`;
-            }}
+            className="btn-accent inline-flex items-center gap-3 font-mono text-xs tracking-widest uppercase px-5 py-3"
           >
             View case study
-            <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-              <path d="M1 9L9 1M9 1H3M9 1v6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+            <ArrowIcon />
           </Link>
         </div>
       )}
 
       {/* Bottom separator */}
-      <div
-        className="mx-6 md:mx-12 lg:mx-16 h-px"
-        style={{ background: "var(--border)" }}
-      />
+      <div className="mx-6 md:mx-12 lg:mx-16 h-px" style={{ background: "var(--border)" }} />
     </article>
+  );
+}
+
+function ArrowIcon() {
+  return (
+    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
+      <path d="M1 9L9 1M9 1H3M9 1v6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   );
 }
 
 export default function SelectedWork() {
   const sectionRef = useRef<HTMLElement>(null);
-  const reduced = prefersReducedMotion();
+  const reduced = useReducedMotion();
 
   useGSAP(
     () => {
@@ -303,7 +254,7 @@ export default function SelectedWork() {
         scrollTrigger: { trigger: el.querySelector(".work-label"), start: "top 85%" },
       });
     },
-    { scope: sectionRef }
+    { scope: sectionRef, dependencies: [reduced], revertOnUpdate: true }
   );
 
   return (

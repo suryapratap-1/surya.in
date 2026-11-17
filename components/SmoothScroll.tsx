@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { ReactLenis, useLenis } from "lenis/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import gsap from "gsap";
-import { prefersReducedMotion } from "@/lib/motion";
+import { useReducedMotion } from "@/lib/motion";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -15,32 +15,18 @@ function GSAPBridge() {
   return null;
 }
 
-interface SmoothScrollProps {
-  children: React.ReactNode;
-}
-
-export default function SmoothScroll({ children }: SmoothScrollProps) {
-  const reduced = prefersReducedMotion();
+export default function SmoothScroll({ children }: Readonly<{ children: React.ReactNode }>) {
+  const reduced = useReducedMotion();
 
   useEffect(() => {
-    if (reduced) return;
     gsap.ticker.lagSmoothing(0);
-  }, [reduced]);
+  }, []);
 
-  if (reduced) {
-    return <>{children}</>;
-  }
-
+  // Always mounted so the tree never remounts when the preference changes;
+  // with reduced motion, wheel smoothing is off (native-feeling scroll).
+  // Touch always uses native scrolling (Lenis default, syncTouch: false).
   return (
-    <ReactLenis
-      root
-      options={{
-        lerp: 0.1,
-        duration: 1.2,
-        smoothWheel: true,
-        touchMultiplier: 0,
-      }}
-    >
+    <ReactLenis root options={{ lerp: 0.1, smoothWheel: !reduced }}>
       <GSAPBridge />
       {children}
     </ReactLenis>
